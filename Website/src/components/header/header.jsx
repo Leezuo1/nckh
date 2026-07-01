@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import './Header.css';
+import './header.css';
 import logoVLU from '../../assets/Images/Logo Đại Học Văn Lang H - White.png';
 import notificationService from '../../services/notificationService';
 import topicService from '../../services/topicService';
