@@ -1,0 +1,251 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  background-color: #000;
+}
+
+.vung_chua_chinh {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url('../assets/Hình ảnh/backgroundVLU.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  font-family: Arial, sans-serif;
+}
+
+.anh_nen_phu_kin {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 1;
+}
+
+.hop_dang_nhap {
+  position: relative;
+  z-index: 2;
+  width: 760px;
+  height: auto;
+  min-height: 380px;
+  background: rgba(255, 255, 255, 0.76);
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  backdrop-filter: blur(8px);
+}
+
+.phan_ben_trai {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+}
+
+.anh_logo_vlu {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+}
+
+.vach_ngan_doc {
+  position: absolute;
+  left: 50%;
+  top: 50px;
+  bottom: 50px;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.phan_ben_phai {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  padding: 32px 36px;
+  position: relative;
+  background: #1e2538;
+  border-radius: 0 12px 12px 0;
+}
+
+.nut_mui_ten_quay_lai {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 20px;
+  color: #888;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.nut_mui_ten_quay_lai:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.tieu_de_form {
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 22px;
+  letter-spacing: 0.3px;
+}
+
+.form_dang_nhap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.nhom_truong_nhap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nhan_truong_nhap {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #8b9bb4;
+  text-transform: uppercase;
+}
+
+.o_nhap_lieu {
+  background: #252d40;
+  border: 1.5px solid #2f3a52;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #e2e8f0;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+}
+
+.o_nhap_lieu::placeholder {
+  color: #4a5568;
+}
+
+.o_nhap_lieu:focus {
+  border-color: #be1e2d;
+  box-shadow: 0 0 0 3px rgba(190, 30, 45, 0.15);
+}
+
+.o_nhap_lieu.loi {
+  border-color: #fc8181;
+}
+
+.chu_bao_loi {
+  font-size: 11px;
+  color: #fc8181;
+  margin-top: 2px;
+}
+
+.thong_bao_loi_server {
+  background: rgba(190, 30, 45, 0.15);
+  border: 1px solid rgba(190, 30, 45, 0.4);
+  color: #fc8181;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.nut_dang_nhap_chinh {
+  background: #be1e2d;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  margin-top: 4px;
+  box-shadow: 0 4px 14px rgba(190, 30, 45, 0.35);
+}
+
+.nut_dang_nhap_chinh:hover:not(:disabled) {
+  background: #a01825;
+  box-shadow: 0 6px 20px rgba(190, 30, 45, 0.5);
+  transform: translateY(-1px);
+}
+
+.nut_dang_nhap_chinh:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.nut_dang_nhap_chinh:disabled {
+  background: #5a2229;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Ngăn cách "hoặc" giữa form và nút Microsoft */
+.vach_ngan_hoac {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 18px 0 14px;
+  color: #8b93a7;
+  font-size: 12px;
+}
+.vach_ngan_hoac::before,
+.vach_ngan_hoac::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+}
+.vach_ngan_hoac span { padding: 0 12px; }
+
+/* Nút đăng nhập Microsoft 365 (kiểu chuẩn: nền trắng, chữ tối) */
+.nut_microsoft {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background: #ffffff;
+  color: #3c4043;
+  border: 1px solid #d2d6dc;
+  border-radius: 8px;
+  padding: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+.nut_microsoft:hover:not(:disabled) {
+  background: #f3f4f6;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transform: translateY(-1px);
+}
+.nut_microsoft:disabled { opacity: 0.6; cursor: not-allowed; }
+.icon_microsoft { width: 18px; height: 18px; object-fit: contain; }
+
+.toast_can_dang_nhap { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); color: #fff; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; border: 1px solid rgba(255,255,255,0.3); z-index: 999; animation: fadeInDown 0.3s ease; } @keyframes fadeInDown { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }

@@ -1,0 +1,238 @@
+/* Container chính của Section 2 */
+.section2-container {
+  padding: 120px 24px; /* Tăng padding để trang dài ra */
+  background-color: #F5F4F0;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  overflow: visible; 
+}
+
+.section2-content {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Header Section */
+.section2-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.section2-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  border: 1px solid rgba(232, 52, 26, 0.3);
+  background-color: rgba(232, 52, 26, 0.08);
+  margin-bottom: 20px;
+}
+
+.badge-dot-red {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #E8341A;
+}
+
+.badge-text-red {
+  font-size: 12px;
+  font-weight: 600;
+  color: #E8341A;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.section2-title {
+  font-size: clamp(32px, 4vw, 40px);
+  font-weight: 700;
+  color: #1C1917;
+  margin-bottom: 16px;
+  font-family: 'Inter', sans-serif;
+}
+
+.section2-subtitle {
+  color: #6B7280;
+  max-width: 500px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Grid layout */
+.feature-grid {
+  display: grid;
+  grid-template-cols: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+/* Card item */
+.feature-card-item {
+  background-color: #ffffff;
+  border: 1px solid #E8E6E0;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(32px);
+}
+
+.feature-card-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.feature-card-item:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-4px);
+}
+
+/* Icon styles */
+.icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-main {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Màu sắc icon cụ thể */
+.bg-blue-500-10 { background-color: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+.bg-blue-500 { background-color: #3b82f6; }
+
+.bg-emerald-500-10 { background-color: rgba(16, 185, 129, 0.1); color: #34d399; }
+.bg-emerald-500 { background-color: #10b981; }
+
+.bg-amber-500-10 { background-color: rgba(245, 158, 11, 0.1); color: #fbbf24; }
+.bg-amber-500 { background-color: #f59e0b; }
+
+.bg-purple-500-10 { background-color: rgba(139, 92, 246, 0.1); color: #a78bfa; }
+.bg-purple-500 { background-color: #8b5cf6; }
+
+/* Text styles tronng card */
+.card-body {
+  flex: 1;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1C1917;
+  margin-bottom: 8px;
+}
+
+.card-desc {
+  font-size: 14px;
+  color: #6B7280;
+  line-height: 1.6;
+}
+
+.card-cta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #E8341A;
+  text-decoration: none;
+  transition: gap 0.2s;
+}
+
+.card-cta:hover {
+  color: #FF6B47;
+  gap: 12px;
+}
+.section2-container {
+  padding: 80px 20px;
+  background-color: #f9fafb; 
+  width: 100%;
+}
+
+.section2-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section2-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+}
+
+.feature-card-item {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  transition: all 0.5s ease;
+  opacity: 0;
+  transform: translateY(30px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.feature-card-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.feature-card-item:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 15px 0 10px;
+  color: #111;
+}
+
+.card-desc {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.card-cta {
+  background: none ;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #be1e2d; 
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0;
+  cursor: pointer; 
+  
+  transition: all 0.2s ease;
+}

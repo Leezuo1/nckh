@@ -1,0 +1,186 @@
+.profile-page {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr; /* Cột trái nhỏ hơn cột phải */
+  gap: 16px;
+  align-items: start;
+}
+
+/* Box trắng dùng chung */
+.white-box {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+
+/* --- CỘT TRÁI --- */
+.profile-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Avatar */
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 24px;
+}
+
+.avatar-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background-color: #be1e2d;
+  color: white;
+  font-size: 28px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+}
+
+.role-badge {
+  background-color: #be1e2d;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 16px;
+  border-radius: 20px;
+}
+
+/* Danh sách thông tin */
+.info-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid #f0f0f0;
+}
+
+.info-icon {
+  width: 36px;
+  height: 36px;
+  background: #fff0f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #be1e2d;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.info-label {
+  font-size: 11px;
+  color: #999;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+/* --- CỘT PHẢI --- */
+.profile-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.section-icon {
+  width: 36px;
+  height: 36px;
+  background: #fff0f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
+}
+
+.divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 12px 0;
+}
+
+/* Hoạt động đăng nhập */
+.login-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.login-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.login-value {
+  font-size: 13px;
+  color: #666;
+}
+
+/* Đề tài */
+.topic-group {
+  padding: 4px 0;
+}
+
+.topic-group-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.topic-link {
+  font-size: 13px;
+  color: #be1e2d;
+  cursor: pointer;
+  margin-bottom: 6px;
+  line-height: 1.5;
+  transition: opacity 0.2s ease;
+}
+
+.topic-link:hover {
+  opacity: 0.7;
+  text-decoration: underline;
+}

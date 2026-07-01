@@ -1,0 +1,554 @@
+
+.nen-modal-form {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  backdrop-filter: blur(3px);
+}
+
+.khung-modal-chinh {
+  background: #fff;
+  width: 750px;
+  max-height: 90vh;
+  border-radius: 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  animation: modal-hien-ra 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modal-hien-ra {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.nut-dong-cheo {
+  position: absolute;
+  top: 20px; right: 25px;
+  background: none; border: none;
+  cursor: pointer; color: #333;
+  z-index: 10;
+}
+
+.noi-dung-scroll-form {
+  padding: 30px 40px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Scrollbar đẹp */
+.noi-dung-scroll-form::-webkit-scrollbar { width: 6px; }
+.noi-dung-scroll-form::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+.the-trang-thai-top {
+  background: #eef2ff;
+  padding: 4px 15px;
+  border-radius: 20px;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+
+.text-tim { color: #6366f1; }
+.text-xanh { color: #22c55e; }
+
+.tieu-de-lon-form {
+  font-size: 22px;
+  color: #1a1a1a;
+  margin-bottom: 30px;
+  line-height: 1.4;
+}
+
+.phan-muc-form { margin-bottom: 25px; }
+
+.tieu-de-muc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #444;
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.gia-tri-muc { color: #555; font-size: 14px; margin: 0; }
+.mo-ta-chi-tiet { line-height: 1.6; text-align: justify; }
+
+.hang-doi-nhau { display: flex; gap: 60px; }
+
+.vung-xam-thong-tin {
+  background: #f4f4f4;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+}
+
+.tieu-de-muc-dam {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.bang-thong-tin-con {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+
+.gach-duoi { border-bottom: 1px solid #e0e0e0; }
+.gach-duoi:last-child { border-bottom: none; }
+
+.cot-thong-tin { display: flex; flex-direction: column; gap: 5px; }
+.cot-thong-tin label { font-size: 12px; color: #888; }
+.cot-thong-tin span { font-size: 14px; font-weight: 600; color: #333; }
+
+.vung-danh-sach-file { display: flex; align-items: center; gap: 15px; }
+
+.item-file {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.icon-file {
+    width: 40px; height: 50px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 10px;
+}
+.excel { background: #22c55e; }
+.doc { background: #3b82f6; }
+
+.ten-file { font-size: 11px; color: #666; }
+
+.nut-tai-len-icon {
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    border: none;
+    background: #25244d;
+    color: white;
+    cursor: pointer;
+}
+
+.chan-modal {
+  padding: 20px 40px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #eee;
+}
+
+.nut-dong-form-chinh {
+  padding: 10px 40px;
+  background: #d1d1d1;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.nut-dong-form-chinh:hover { background: #bbb; }
+/* Tìm đến đoạn này hoặc thêm mới nếu chưa có */
+.vung-danh-sach-file {
+    display: flex;
+    align-items: center;
+    gap: 25px; /* Khoảng cách giữa các file */
+    margin-top: 10px;
+    position: relative;
+    z-index: 10;
+}
+
+.item-file {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.item-file:hover {
+    transform: translateY(-3px);
+}
+
+/* --- QUAN TRỌNG: ÉP KÍCH THƯỚC ICON TẠI ĐÂY --- */
+.anh-icon-file {
+    width: 35px;        /* Độ rộng vừa phải */
+    height: 45px;       /* Chiều cao cho ra dáng icon file */
+    object-fit: contain; /* Giữ đúng tỷ lệ ảnh không bị méo */
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); /* Đổ bóng nhẹ cho xịn */
+}
+
+.ten-file {
+    font-size: 11px;
+    color: #64748b;
+    max-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Nếu tên dài quá thì hiện dấu ... */
+    font-weight: 500;
+}
+
+/* Nút tải lên (cái icon Download) */
+.nut-tai-len-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    background: #1e293b;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.nut-tai-len-icon:hover {
+    background: #be1e2d;
+    transform: scale(1.1);
+}/* --- NỀN MODAL MỜ (GLASSMORPHISM) --- */
+.nen-modal-form {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(6px); /* Làm mờ hậu cảnh xịn sò */
+}
+
+.khung-modal-chinh {
+  background: rgba(255, 255, 255, 0.95);
+  width: 720px;
+  max-height: 85vh; /* Hẹp chiều dọc lại cho gọn */
+  border-radius: 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  animation: modal-xuat-hien 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modal-xuat-hien {
+  from { transform: scale(0.9) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* --- HIỆU ỨNG DỐM SÁNG & HẠT LẤP LÁNH --- */
+.dom-sang-chuyen-dong {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle at 10% 10%, rgba(190, 30, 45, 0.04) 0%, transparent 40%),
+              radial-gradient(circle at 90% 90%, rgba(37, 36, 77, 0.05) 0%, transparent 40%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.lop-hat-sieu-sang {
+  position: absolute;
+  width: 2px; height: 2px;
+  background: transparent;
+  box-shadow: 120px 80px #fff, 450px 210px #ddd, 600px 140px #fff, 250px 420px #ccc;
+  z-index: 0;
+  opacity: 0.5;
+  filter: blur(1px);
+  animation: hat-bay-cham 25s linear infinite;
+}
+
+@keyframes hat-bay-cham {
+  from { transform: translateY(0); }
+  to { transform: translateY(-600px); }
+}
+
+/* --- CHI TIẾT NỘI DUNG --- */
+.noi-dung-scroll-form {
+  padding: 30px 40px;
+  overflow-y: auto;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.noi-dung-scroll-form::-webkit-scrollbar { width: 5px; }
+.noi-dung-scroll-form::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+/* Trạng thái quét sáng */
+.the-trang-thai-top {
+  background: #f1f5f9;
+  padding: 5px 15px;
+  border-radius: 12px;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 15px;
+  position: relative;
+  overflow: hidden;
+}
+
+.the-trang-thai-top::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine { 100% { left: 100%; } }
+
+.tieu-de-lon-form {
+  font-size: 22px;
+  color: #0f172a;
+  margin-bottom: 25px;
+  font-weight: 850;
+  line-height: 1.3;
+}
+
+/* Các khối thông tin */
+.vung-xam-thong-tin {
+  background: rgba(248, 250, 252, 0.8);
+  padding: 18px 22px;
+  border-radius: 16px;
+  margin-bottom: 15px;
+  border: 1px solid #f1f5f9;
+  transition: all 0.3s ease;
+}
+
+.vung-xam-thong-tin:hover {
+  background: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+  border-color: #be1e2d;
+}
+
+.tieu-de-muc-dam {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.cot-thong-tin label {
+  font-size: 10px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.cot-thong-tin span {
+  font-size: 14px;
+  font-weight: 650;
+  color: #334155;
+}
+
+/* --- ICON FILE WORD/PDF --- */
+.vung-danh-sach-file {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.anh-icon-file {
+  width: 38px;
+  height: auto;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.item-file:hover .anh-icon-file {
+  transform: scale(1.15) rotate(5deg);
+}
+
+.nut-tai-len-icon {
+  width: 40px; height: 40px;
+  background: #1e293b;
+  color: white;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nut-tai-len-icon:hover {
+  background: #be1e2d;
+  box-shadow: 0 8px 15px rgba(190, 30, 45, 0.3);
+}
+
+/* Nút đóng chân Modal */
+.nut-dong-form-chinh {
+  padding: 10px 45px;
+  background: #1e293b;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nut-dong-form-chinh:hover {
+  background: #be1e2d;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.nut-dong-cheo:hover { color: #be1e2d; transform: rotate(90deg); transition: 0.3s; }
+/* Trong file Formdsdetai.css của ní */
+.noi-dung-scroll-form {
+  padding: 30px 40px;
+  overflow-y: auto; /* Quan trọng để cuộn khi có 5 sinh viên */
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+/* Thêm cái này để khoảng cách các sinh viên nhìn thoáng hơn */
+.bang-thong-tin-con.gach-duoi {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 15px 0; /* Tăng padding cho thoáng */
+}
+
+.bang-thong-tin-con.gach-duoi:last-child {
+  border-bottom: none;
+}
+/* Đường gạch ngang phân cách các phần */
+.duong-phan-cach {
+  border: none;
+  height: 1px;
+  background-color: #8d8e8f;
+  margin: 20px auto;
+  width: 80%;
+}
+
+/* Đảm bảo khối thời gian không bị dính sát vào đường kẻ */
+.hang-doi-nhau {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px 0;
+}
+
+/* Ẩn margin thừa của phan-muc-form khi dùng kèm đường kẻ */
+.phan-muc-form {
+  margin-bottom: 0;
+}
+
+/* Tinh chỉnh khoảng cách khối xám */
+.vung-xam-thong-tin {
+  margin-top: 10px;
+}
+
+/* Class hỗ trợ layout hàng không margin */
+.no-border {
+  border: none ;
+  background: none ;
+  padding: 0 ;
+}
+/* --- NỀN MODAL MỜ (GLASSMORPHISM) --- */
+.nen-modal-form {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  backdrop-filter: blur(6px);
+}
+
+.khung-modal-chinh {
+  background: rgba(255, 255, 255, 0.98);
+  width: 750px;
+  max-height: 85vh;
+  border-radius: 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+  animation: modal-xuat-hien 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* --- KỸ THUẬT GIỚI HẠN TRÀN NỘI DUNG (GIẤU NỘI DUNG KHI CUỘN LÊN) --- */
+.khung-modal-chinh::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 40px; /* Khoảng cách giới hạn ở trên */
+  background: linear-gradient(to bottom, #ffffff 40%, rgba(255, 255, 255, 0));
+  z-index: 5; /* Nằm trên nội dung cuộn */
+  pointer-events: none; /* Để không bị cản trở việc click nút */
+}
+
+@keyframes modal-xuat-hien {
+  from { transform: scale(0.9) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* --- NÚT ĐÓNG (CỐ ĐỊNH TRÊN CÙNG) --- */
+.nut-dong-cheo {
+  position: absolute;
+  top: 15px; right: 20px;
+  background: white; 
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: #334155;
+  z-index: 100; /* Luôn trên cùng */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: none;
+  transition: 0.3s;
+}
+.nut-dong-cheo:hover { color: #be1e2d; transform: rotate(90deg); }
+.nut-tai-len-icon:hover { background: #be1e2d; transform: scale(1.1); }
+.nut-dong-form-chinh:hover { background: #be1e2d; transform: translateY(-2px); }
+.vung-xam-thong-tin {
+  background: #ffffff; /* Đổi từ xám nhạt sang trắng để đổ bóng nhìn rõ và sạch hơn */
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 25px;
+  border: 1px solid #f1f5f9; /* Viền siêu nhạt */
+  
+  /* ĐÂY LÀ PHẦN ĐỔ BÓNG */
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 
+              0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  
+  transition: all 0.3s ease; /* Thêm hiệu ứng mượt khi hover */
+}
+
+/* Hiệu ứng khi rà chuột vào  */
+.vung-xam-thong-tin:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08);
+  border-color: #be1e2d; /* Đổi màu viền sang đỏ Văn Lang khi hover cho chất */
+}

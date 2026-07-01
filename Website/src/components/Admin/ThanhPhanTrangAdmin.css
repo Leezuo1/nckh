@@ -1,0 +1,89 @@
+/* KHUNG CHÂN TRANG */
+.chan-trang-admin-tong {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  background-color: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  border-radius: 0 0 12px 12px; /* Khớp với bo góc của bảng */
+}
+
+/* PHẦN TEXT BÊN TRÁI */
+.thong-tin-hien-thi {
+  font-size: 13.5px;
+  color: #94a3b8;
+  font-family: 'Inter', sans-serif;
+}
+
+.thong-tin-hien-thi strong {
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* CỤM PHÂN TRANG BÊN PHẢI */
+.cum-nut-phan-trang {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nut-so-trang-admin, 
+.nut-dieu-huong-admin {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  background-color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+/* Hover mượt mà */
+.nut-so-trang-admin:hover:not(.kich-hoat),
+.nut-dieu-huong-admin:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+/* Nút đang hoạt động */
+.nut-so-trang-admin.kich-hoat {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+}
+
+/* Nút bị vô hiệu hóa */
+.nut-dieu-huong-admin:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  background-color: #f8fafc;
+}
+
+/* Dấu ba chấm */
+.dau-ba-cham-admin {
+  width: 30px;
+  text-align: center;
+  color: #cbd5e1;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 640px) {
+  .chan-trang-admin-tong {
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    text-align: center;
+  }
+  .cum-nut-phan-trang { flex-wrap: wrap; justify-content: center; }
+}

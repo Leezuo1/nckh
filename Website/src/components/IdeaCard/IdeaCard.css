@@ -1,0 +1,112 @@
+.idea-card {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.idea-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Vùng tiêu đề nền navy */
+.card-header {
+  background-color: #1e2d5a;
+  padding: 24px;       
+  min-height: 140px;    
+  display: flex;
+  align-items: flex-start;
+}
+
+.card-title {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Vùng thông tin bên dưới */
+.card-info {
+  background-color: #ffffff;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row-dept-date {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #555;
+}
+
+.row-poster {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.poster-info {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #444;
+  gap: 2px;
+}
+
+/* Badge trạng thái */
+.status-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Vàng - Chờ xét duyệt */
+.pending {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+/* Hồng - Hủy */
+.cancelled {
+  background-color: #fce4ec;
+  color: #c62828;
+}
+
+/* Xanh dương - Đang Thực Hiện */
+.in-progress {
+  background-color: #e8eaff;
+  color: #1022E6;
+}
+
+/* Xanh lá - Nghiệm Thu / Hoàn Thành */
+.completed {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Xám - Chờ bắt đầu */
+.waiting {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+/* Đỏ - Trễ */
+.late {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* Vàng - Báo Cáo / Chỉnh Sửa */
+.reporting,
+.editing {
+  background-color: #fefce8;
+  color: #ca8a04;
+}

@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+enum Gender {
+  Male
+  Female
+}
+enum UserRole {
+  Student
+  Lecturer
+  Admin
+}
+enum UserStatus {
+  Active
+  Inactive
+}
+enum TopicStatus {
+  Pending
+  WaitingToStart // Chờ bắt đầu (sau khi duyệt assign)
+  InProgress
+  Reporting      // Báo Cáo (khoá, chỉ tải tài liệu)
+  Editing        // Chỉnh Sửa (mở lại trong editDeadline, hết giờ → Done)
+  Done           // hiển thị "Nghiệm thu"
+  Cancelled
+}
+enum TopicParticipantRole {
+  Supervisor //giảng viên hướng dẫn
+  Leader //chủ nhiệm đề tài
+  Member
+  PendingMember //đang xin tham gia, chờ Leader duyệt
+}
+enum AcademicDegree {
+  Master
+  Doctor
+  Professor
+  Other
+}
+enum FileFormat {
+  Docx
+  Pdf
+  Other
+}
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  fullName String
+  userId String @unique
+  faculty String
+  batch  String? //? là không diền thì hiện null
+  gender Gender
+  phone String @unique
+  outlook String @unique
+  role UserRole
+  status UserStatus @default(Active)
+  passwordHash String?
+  refreshToken String?
+  created DateTime @default(now())
+  topicParticipant TopicParticipant[]
+  submittedTopic Topic[] @relation("Submitter")
+  uploadedDocuments Document[]
+  activities Activity[]
+}
+model Topic {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  topicId String 
+  topicName String
+  description String?
+  objective String?
+  projectScope String?
+  expectedProduct String?
+  year String
+  status TopicStatus @default(Pending)
+  progress Int @default(0)
+  isAssigned Boolean @default(false)
+  isApproved Boolean @default(false)
+  submitterId String? @db.ObjectId
+  deadline DateTime
+  durationMonths Int? @default(6) // Thời gian thực hiện (tháng), tối đa 12
+  startDate DateTime? // Ngày bắt đầu dự án (khi chuyển sang InProgress)
+  editDeadline DateTime? // Hạn cho phép chỉnh sửa khi ở trạng thái Editing (hết giờ → Done)
+  teamMembersInfo Json? // Danh sách SV điền lúc xin assign (kể cả MSSV không khớp DB)
+  progressHistory Json? // Lịch sử tiến độ: [{ date, value }]
+  submitter User? @relation("Submitter", fields: [submitterId], references: [id])
+  topicParticipant TopicParticipant[]
+  documents Document[]
+  timelines Timeline[]
+  activities Activity[]
+}
+model TopicParticipant {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  topicId String @db.ObjectId
+  userId String? @db.ObjectId
+  topicParticipantRole TopicParticipantRole
+  academicDegree AcademicDegree? //Chọn học vị nếu là giảng viên
+  assigned DateTime @default(now())
+  topic Topic @relation(fields: [topicId], references: [id])
+  user User? @relation(fields: [userId], references: [id])
+  @@unique([topicId, userId])
+}
+model Document {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  topicId String @db.ObjectId
+  uploaderId String? @db.ObjectId
+  fileName String       // tên gốc của file
+  storedName String?    // tên file thật trên disk (để tải về)
+  size Int
+  format FileFormat
+  note String?
+  uploaded DateTime @default(now())
+  topic Topic @relation(fields: [topicId], references: [id])
+  uploader User? @relation(fields: [uploaderId], references: [id])
+}
+model Timeline {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  topicId String @db.ObjectId
+  timelineName String
+  deadline DateTime
+  isCompleted Boolean @default(false)
+  completed DateTime?
+  topic Topic @relation(fields: [topicId], references: [id])
+}
+model Activity {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  topicId String? @db.ObjectId
+  userId String? @db.ObjectId
+  action String
+  detail String?
+  created DateTime @default(now())
+  user User? @relation(fields: [userId], references: [id])
+  topic Topic? @relation(fields: [topicId], references: [id])
+}
+
+model TopicAccess {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  topicId String @db.ObjectId
+  userId String @db.ObjectId
+  accessed DateTime @default(now())
+}
+
+model Notification {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId  // người nhận
+  title String
+  message String
+  link String?                  // optional link để click vào
+  type String?                  // loại thông báo: "request_join", "idea_approved",...
+  data Json?                    // metadata kèm theo (vd: { topicId, requesterId })
+  isRead Boolean @default(false)
+  created DateTime @default(now())
+}

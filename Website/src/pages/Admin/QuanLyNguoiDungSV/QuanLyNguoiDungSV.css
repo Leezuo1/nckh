@@ -1,0 +1,25 @@
+.khung-quan-ly-sv-tong {
+  padding: 10px 0;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+/* Khung trắng bao quanh bảng để tạo hiệu ứng Card */
+.vung-chua-bang-sv-trang {
+  margin: 10px 30px 40px 30px; /* Căn lề 2 bên 30px cho thoáng */
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow: hidden; /* Giúp bảng và header xám không bị lòi ra ngoài bo góc */
+}
+
+/* Đảm bảo bảng bên trong ép sát lề */
+.vung-chua-bang-sv-trang .khung-bang-du-lieu {
+  padding: 0;
+}
+
+@media (max-width: 1024px) {
+  .vung-chua-bang-sv-trang { margin: 10px 16px 32px; }
+  .khung-quan-ly-sv-tong .vung-thanh-cong-cu-admin { padding-right: 16px; }
+}

@@ -1,0 +1,273 @@
+/* PHAN CHAN SIDEBAR */
+.vung-chan-sidebar {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;           /* Tăng khoảng cách giữa nút Cài đặt và Profile */
+  padding-bottom: 10px; /* Nhích cao lên  */
+}
+
+/* Đảm bảo khung ngoài không bị cắt */
+.khung-sidebar-admin {
+  width: 260px;
+  height: 100vh;
+  background-color: #1a2332;
+  display: flex;
+  flex-direction: column;
+  padding: 0px 10px; /* Giữ nguyên hoặc tăng padding-bottom ở đây n */
+  position: fixed;
+  left: 0;
+  top: 0;
+  font-family: 'Inter', sans-serif;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  box-sizing: border-box; 
+}
+
+/* PHAN DAU LOGO */
+.vung-dau-sidebar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 5px 30px;
+}
+
+.chu-logo .tieu-de-chinh {
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  margin: 0;
+}
+
+.chu-logo .tieu-de-phu {
+  color: #64748b;
+  font-size: 11px;
+  margin: 0;
+}
+
+.tieu-de-nhom {
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+  padding-left: 10px;
+  margin-bottom: 15px;
+  letter-spacing: 0.5px;
+}
+
+/* DANH SACH MENU */
+.vung-menu-chinh {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nut-menu-don {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 15px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.nut-menu-don:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #617bf1;
+}
+
+/* TRANG THAI DANG CHON (ACTIVE) */
+.nut-menu-don.dang-chon {
+  background: rgba(59, 130, 246, 0.15);
+  color: #ffffff;
+ 
+}
+
+.nut-menu-don.dang-chon .bieu-tuong-menu {
+  color: #3b82f6;
+  opacity: 1;
+}
+
+/* DUONG KE NGAN CACH */
+.duong-ke-ngan-cach {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.05);
+  margin: 15px 10px;
+}
+
+/* PHAN CHAN SIDEBAR */
+.vung-chan-sidebar {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 10px;
+}
+
+/* NUT CAI DAT MAC DINH */
+.the-cai-dat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03); 
+  border-radius: 14px;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.hop-bieu-tuong-cai-dat {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* HOVER NUT CAI DAT */
+.the-cai-dat:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: #ffffff;
+}
+
+.the-cai-dat:hover .hop-bieu-tuong-cai-dat {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.chu-cai-dat {
+  flex: 1;
+  font-weight: 500;
+  font-size: 13px;
+  text-align: left;
+}
+
+.mui-ten-phu {
+  opacity: 0.5;
+}
+
+.the-cai-dat:hover .mui-ten-phu {
+  color: #3b82f6;
+  opacity: 1;
+}
+
+/* THE CA NHAN (PROFILE) */
+.the-ca-nhan {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  color: #fff;
+}
+
+.hop-anh-dai-dien {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.thong-tin-ca-nhan .ten-admin {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.nut-dang-xuat {
+  color: #475569;
+  cursor: pointer;
+  margin-left: auto;
+  transition: 0.2s;
+}
+
+.nut-dang-xuat:hover {
+  color: #ef4444;
+}
+/* Tinh chỉnh cho ảnh logo VLU */
+.anh-logo-vlu-sidebar {
+  width: 40px;   /* Hoặc 26px tùy ní thấy vừa mắt */
+  height: 40px;
+  object-fit: contain; /* Đảm bảo ảnh không bị móp */
+  display: block;
+}
+
+/* Có thể bỏ background màu xanh của .hop-logo nếu ní muốn logo hiện nguyên bản */
+.hop-logo {
+  width: 42px;
+  height: 42px;
+ 
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* Bo góc ảnh theo khung luôn */
+}
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.admin-main-content {
+  flex: 1;
+  margin-left: 260px; /* Độ rộng của sidebar để không bị đè */
+  background-color: #f8fafc; /* Màu nền trang DS đề tài */
+  min-height: 100vh;
+}
+
+/* Reset mặc định của trình duyệt */
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ====== RESPONSIVE: màn hình hẹp -> sidebar thu gọn chỉ còn icon ====== */
+@media (max-width: 1024px) {
+  .khung-sidebar-admin {
+    width: 72px;
+    padding: 0 8px;
+  }
+  /* Ẩn toàn bộ phần chữ, chỉ giữ icon */
+  .khung-sidebar-admin .chu-logo,
+  .khung-sidebar-admin .tieu-de-nhom,
+  .khung-sidebar-admin .nhan-menu,
+  .khung-sidebar-admin .chu-cai-dat,
+  .khung-sidebar-admin .mui-ten-active,
+  .khung-sidebar-admin .mui-ten-phu,
+  .khung-sidebar-admin .thong-tin-ca-nhan {
+    display: none;
+  }
+  /* Căn giữa icon trong các nút */
+  .vung-dau-sidebar { justify-content: center; padding: 16px 0 24px; }
+  .nut-menu-don,
+  .the-cai-dat {
+    justify-content: center;
+    gap: 0;
+    padding: 12px 0;
+  }
+  .the-ca-nhan {
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 0;
+  }
+  .nut-dang-xuat { margin-left: 0; }
+
+  /* Content nhường chỗ đúng bằng bề rộng sidebar đã thu gọn */
+  .admin-main-content { margin-left: 72px; }
+}

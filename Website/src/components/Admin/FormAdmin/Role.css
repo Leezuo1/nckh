@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+/* Overlay */
+.nen-mo-role {
+  position: fixed; inset: 0; z-index: 10000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem; background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px); font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Khung Modal */
+.khung-modal-role {
+  background-color: #ffffff;
+  width: 100%; max-width: 500px;
+  border-radius: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: modalScaleIn 0.25s ease-out;
+}
+
+@keyframes modalScaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Header */
+.dau-modal-role {
+  padding: 24px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.tieu-de-chinh-role { font-size: 20px; font-weight: 800; color: #1e293b; }
+.nut-dong-role { background: transparent; border: none; color: #94a3b8; cursor: pointer; transition: 0.2s; }
+.nut-dong-role:hover { color: #ef4444; }
+
+/* Profile Section - Cái card màu xám */
+.vung-user-hien-tai {
+  margin: 0 32px 24px 32px;
+  padding: 16px 20px;
+  background-color: #f8fafc;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.avatar-tron-role {
+  width: 48px; height: 48px; border-radius: 50%;
+  background-color: #22c55e; /* Màu xanh lá chuẩn ảnh */
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px;
+}
+.ten-user-dam { font-size: 16px; font-weight: 700; color: #1e293b; margin: 0; }
+.email-user-nhat { font-size: 13px; color: #64748b; font-weight: 500; margin: 2px 0 0 0; }
+
+/* Thân Modal */
+.than-modal-role { padding: 0 32px 32px 32px; }
+.nhan-chon-vai-tro { 
+  font-size: 12px; font-weight: 800; color: #94a3b8; 
+  letter-spacing: 0.5px; margin-bottom: 16px; 
+}
+
+.danh-sach-the-vai-tro { display: flex; flex-direction: column; gap: 12px; }
+
+/* Thẻ chọn vai trò */
+.the-chon-vai-tro {
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 20px; border-radius: 14px;
+  border: 1.5px solid #f1f5f9; cursor: pointer; transition: all 0.2s;
+}
+.the-chon-vai-tro:hover { background-color: #f8fafc; }
+
+/* Trạng thái được chọn */
+.the-chon-vai-tro.dang-kich-hoat {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+}
+
+/* Custom Radio */
+.vong-tron-ngoai {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 2px solid #cbd5e1; display: flex; align-items: center; justify-content: center;
+  transition: 0.2s; background-color: #fff;
+}
+.vong-tron-ngoai.checked { border-color: #3b82f6; } 
+
+.cum-van-ban-vai-tro { display: flex; flex-direction: column; }
+.ten-vai-tro-moi { font-size: 15px; font-weight: 700; color: #1e293b; }
+.mo-ta-vai-tro-moi { font-size: 13px; color: #64748b; margin-top: 2px; font-weight: 500; }
+
+/* Footer */
+.phan-chan-role {
+  padding: 0 32px 32px 32px;
+  display: flex; gap: 12px;
+}
+.nut-huy-bo-role {
+  flex: 1; padding: 12px; border-radius: 12px;
+  border: 1.5px solid #e2e8f0; background: white;
+  font-size: 15px; font-weight: 700; color: #64748b;
+  cursor: pointer; transition: 0.2s;
+}
+.nut-huy-bo-role:hover { background-color: #f1f5f9; color: #1e293b; }
+
+.nut-luu-thay-doi-role {
+  flex: 1; padding: 12px; border-radius: 12px;
+  border: none; background-color: #3b82f6; /* Màu xanh đậm Primary */
+  font-size: 15px; font-weight: 700; color: #ffffff;
+  cursor: pointer; transition: 0.2s;
+}
+.nut-luu-thay-doi-role:hover { 
+  background-color: #2563eb; 
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); 
+}
+.cham-tron-trong {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  margin: 0;
+  transform: scale(0) translateX(1px); 
+  
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.vong-tron-ngoai.checked .cham-tron-trong {
+  transform: scale(1) translateX(0.4px);
+}

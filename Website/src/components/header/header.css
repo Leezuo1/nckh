@@ -1,0 +1,168 @@
+:root {
+  --red-vlu: #be1e2d;
+  --white: #ffffff;
+  --text-dark: #2d2d2d; /* Tăng độ đậm để chữ NG rõ hơn */
+  --hover-light: rgba(255, 255, 255, 0.15);
+}
+
+.header {
+  background-color: var(--red-vlu);
+  height: 70px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+  position: relative;
+  z-index: 1000;
+}
+
+.header-inner {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-img {
+  height: 46px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Cụm điều khiển bên phải */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 150px;
+  gap: 15px;
+}
+
+/* Nút đăng nhập */
+.btn-login {
+  background: transparent;
+  color: var(--white);
+  border: 1.5px solid var(--white);
+  padding: 7px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.btn-login:hover {
+  background-color: var(--white);
+  color: var(--red-vlu);
+  transform: translateY(-2px);
+}
+
+/* --- PHẦN AVATAR PROFILE --- */
+.btn-profile {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hiệu ứng hover cho cả cụm nút Profile */
+.btn-profile:hover {
+  background-color: var(--hover-light);
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  background-color: var(--white);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Làm chữ NG sắc nét hơn */
+  color: var(--text-dark);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.5px;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+/* Khi hover thì Avatar nổi bật lên */
+.btn-profile:hover .avatar {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  background-color: #f8f9fa;
+}
+
+.profile-arrow {
+  color: var(--white);
+  font-size: 11px;
+  transition: transform 0.3s ease;
+}
+
+/* Hiệu ứng mũi tên nhún nhảy khi hover */
+.btn-profile:hover .profile-arrow {
+  transform: translateY(3px);
+}
+
+.btn-profile:active {
+  transform: scale(0.96);
+}
+/* Dropdown profile */
+.avatar-wrap {
+  position: relative;
+}
+
+.dropdown-profile {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  min-width: 150px;
+  overflow: hidden;
+  z-index: 999;
+  animation: fadeInDown2 0.2s ease;
+}
+
+@keyframes fadeInDown2 {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item-profile {
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease;
+}
+
+.dropdown-item-profile:hover {
+  background: #f5f5f5;
+}
+
+.dropdown-item-profile.red {
+  color: #be1e2d;
+}
+
+.dropdown-item-profile.red:hover {
+  background: #fff0f0;
+}
+
+.dp-icon {
+  font-size: 15px;
+}

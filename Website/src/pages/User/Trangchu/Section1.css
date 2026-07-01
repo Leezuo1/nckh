@@ -1,0 +1,418 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Container chính tràn màn hình */
+.hero-section-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 40%, #0f2744 70%, #1a1a2e 100%);
+  margin: 0 ;
+  border-radius: 0 ;
+}
+
+/* Texture nhiễu hạt bụi bụi cho sang */
+.noise-texture::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Lớp lưới Grid */
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), 
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Đốm sáng (Mesh Gradients) */
+.mesh-circle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(50px);
+}
+.mesh-top-right {
+  width: 600px;
+  height: 600px;
+  top: -100px;
+  right: -150px;
+  background: radial-gradient(circle, rgba(192,57,43,0.12) 0%, transparent 70%);
+}
+.mesh-bottom-left {
+  width: 400px;
+  height: 400px;
+  bottom: 50px;
+  left: -100px;
+  background: radial-gradient(circle, rgba(192,57,43,0.08) 0%, transparent 70%);
+}
+
+/* Wrapper nội dung */
+.hero-content-wrapper {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 0 2rem;
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+/* Badge */
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 1rem;
+  border-radius: 9999px;
+  margin-bottom: 2rem;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(192,57,43,0.15);
+  border: 1px solid rgba(192,57,43,0.3);
+  color: #ff7f72;
+}
+.badge-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: #C0392B;
+}
+
+/* Tiêu đề và Gradient chữ */
+.hero-main-title {
+  color: white;
+  line-height: 1.05;
+  margin-bottom: 1.5rem;
+  font-size: clamp(42px, 5vw, 68px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.gradient-text {
+  background: linear-gradient(135deg, #ff6b5b 0%, #C0392B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Mô tả */
+.hero-subtitle {
+  font-size: 17px;
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+  color: rgba(255,255,255,0.55);
+}
+
+/* Nút bấm */
+.hero-cta-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  border-radius: 9999px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  background: #C0392B;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(192,57,43,0.4);
+  transition: all 0.2s;
+}
+.btn-primary:hover { transform: scale(1.05); }
+.btn-secondary {
+  padding: 0.875rem 1.75rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+/* Stats Bar */
+.hero-stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 3.5rem;
+}
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: white;
+}
+.stat-label {
+  font-size: 12px;
+  margin-top: 0.125rem;
+  color: rgba(255,255,255,0.4);
+}
+
+/* Scroll Indicator */
+.scroll-indicator-btn {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+}
+.scroll-text {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+}
+.scroll-arrow-box {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.15);
+  transition: all 0.2s;
+}
+.scroll-indicator-btn:hover .scroll-arrow-box {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Animation mượt mà */
+.hidden-state {
+  opacity: 0;
+  transform: translateY(2rem);
+}
+.fade-in-up {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.7s ease-out;
+}
+.delay-1 { transition-delay: 120ms; }
+.delay-2 { transition-delay: 240ms; }
+.delay-3 { transition-delay: 360ms; }
+.delay-4 { transition-delay: 480ms; }
+
+.animate-bounce {
+  animation: bounce 2s infinite;
+}
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+  40% {transform: translateY(-5px);}
+  60% {transform: translateY(-3px);}
+}
+  .hero-section-container {
+  position: relative;
+  display: flex;
+  flex-direction: column; /* Đổi sang column để dễ căn khoảng cách dọc */
+  align-items: center;
+  justify-content: flex-start; /* Cho nội dung bắt đầu từ trên xuống */
+  padding-top: 10vh; /* Tạo khoảng trống phía trên */
+  overflow: visible;
+  min-height: 130vh; /* Tăng chiều cao của toàn bộ Section ở đây */
+  width: 100%;
+  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 40%, #0f2744 70%, #1a1a2e 100%);
+  margin: 0 ;
+}
+/* --- TẠO CÁC ĐỐM SÁNG TRẮNG ĐẬM, NHIỀU, VÀ RỘNG 4 GÓC & GIỮA --- */
+
+/* Sử dụng Pseudoelements của MAIN TITLE cho nhóm hạt bay RỘNG VÀ XA NHẤT */
+.hero-main-title::before,
+.hero-main-title::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw; /* Bao phủ toàn bộ chiều ngang màn hình */
+  height: 100vh; /* Bao phủ toàn bộ chiều cao màn hình */
+  pointer-events: none; /* Không cản trở click */
+  z-index: -1; /* Nằm sau chữ */
+}
+
+/* Nhóm hạt 1: Dày đặc, Trắng đậm, Bay về GÓC TRÊN TRÁI & GÓC DƯỚI PHẢI */
+.hero-main-title::before {
+  background: transparent;
+  width: 4px; /* Kích thước hạt nhỏ mảnh */
+  height: 4px;
+  border-radius: 50%;
+  
+  /* Cú pháp Box-shadow: x-offset y-offset blur spread color */
+  box-shadow: 
+    /* GÓC TRÊN TRÁI (Tọa độ X âm, Y âm xa) - Trắng đậm (0.9 - 1.0) */
+    -400px -300px 1px 0px rgba(255,255,255,1.0),
+    -550px -250px 3px 0px rgba(255,255,255,0.8),
+    -700px -400px 1px 0px rgba(255,255,255,0.9),
+    -300px -350px 2px 0px rgba(255,255,255,1.0),
+    
+    /* GÓC DƯỚI PHẢI (Tọa độ X dương, Y dương xa) - Trắng đậm */
+    450px 320px 1px 0px rgba(255,255,255,1.0),
+    600px 400px 3px 0px rgba(255,255,255,0.8),
+    750px 250px 2px 0px rgba(255,255,255,0.9),
+    350px 450px 1px 0px rgba(255,255,255,1.0);
+    
+  filter: blur(1px); /* Hạt sắc nét */
+  animation: particles-orbit-1 12s linear infinite; /* Bay trượt rộng */
+}
+
+/* Nhóm hạt 2: Dày đặc, Trắng đậm, Bay về GÓC TRÊN PHẢI & GÓC DƯỚI TRÁI */
+.hero-main-title::after {
+  background: transparent;
+  width: 5px; /* Kích thước hạt to hơn chút tạo độ sâu */
+  height: 5px;
+  border-radius: 50%;
+  
+  box-shadow: 
+    /* GÓC TRÊN PHẢI (Tọa độ X dương, Y âm xa) - Trắng đậm */
+    400px -320px 1px 0px rgba(255,255,255,1.0),
+    580px -280px 3px 0px rgba(255,255,255,0.8),
+    720px -380px 1px 0px rgba(255,255,255,0.9),
+    320px -420px 2px 0px rgba(255,255,255,1.0),
+    
+    /* GÓC DƯỚI TRÁI (Tọa độ X âm, Y dương xa) - Trắng đậm */
+    -420px 300px 1px 0px rgba(255,255,255,1.0),
+    -560px 420px 3px 0px rgba(255,255,255,0.8),
+    -680px 280px 2px 0px rgba(255,255,255,0.9),
+    -340px 480px 1px 0px rgba(255,255,255,1.0);
+    
+  filter: blur(1px); /* Hạt sắc nét */
+  animation: particles-orbit-2 10s linear infinite alternate-reverse; /* Bay đổi chiều, Co giãn */
+}
+
+/* Sử dụng Pseudoelements của GRADIENT TEXT cho nhóm hạt TRUNG TÂM */
+.gradient-text {
+  position: relative;
+  background: linear-gradient(
+    135deg, 
+    #ff6b5b 0%,  /* Màu cam đỏ */
+    #C0392B 25%, /* Màu đỏ đậm chính */
+    #ff6b5b 50%, /* Màu cam đỏ lướt qua */
+    #C0392B 75%, /* Màu đỏ đậm quay lại */
+    #ff6b5b 100% /* Kết thúc */
+  );
+  
+  background-size: 300% auto; /* Để dải màu rộng hơn chiều ngang chữ */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  
+  animation: color-shine 8s linear infinite alternate; 
+}
+
+/* Nhóm hạt 3: Hạt trắng nhỏ mảnh, Tập trung lơ lửng ở GIỮA tiêu đề */
+.gradient-text::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  
+  box-shadow: 
+    /* GIỮA CHỮ (Tọa độ X, Y gần 0 hoặc +/- nhỏ) - Trắng đậm */
+    -100px -40px 1px 0px rgba(255,255,255,0.8), /* Giữa trên trái */
+    120px 30px 2px 0px rgba(255,255,255,0.7),   /* Giữa dưới phải */
+    0px -70px 1px 0px rgba(255,255,255,0.9),    /* Giữa trên trung tâm */
+    -50px 60px 2px 0px rgba(255,255,255,0.6),
+     -10px -40px 1px 0px rgba(255,255,255,0.8), /* Giữa trên trái */
+    2000px 30px 2px 0px rgba(255,255,255,0.7),   /* Giữa dưới phải */
+    120px -70px 1px 0px rgba(255,255,255,0.9),    /* Giữa trên trung tâm */
+    -50px 60px 2px 0px rgba(255,255,255,0.6),     /* Giữa dưới trái */
+    70px -50px 1px 0px rgba(255,255,255,0.8);   /* Giữa trên phải */
+    
+  filter: blur(1.5px); /* Bo nhòe nhẹ cho tự nhiên */
+  animation: particles-float-center 6s infinite ease-in-out alternate; /* Bay chậm, Co giãn nhẹ */
+}
+
+/* --- KEYFRAMES MỚI: QUỸ ĐẠO RỘNG VÀ GIỮA --- */
+
+/* 1. Animation màu gradient chạy mượt mà trên chữ */
+@keyframes color-shine {
+  0% { background-position: 0% center; }
+  100% { background-position: 100% center; }
+}
+
+/* 2. Quỹ đạo bay 1 cho các hạt GÓC XA - Trượt ngang rộng */
+@keyframes particles-orbit-1 {
+  0% { transform: translate(-50%, -50%) rotate(0deg) scale(0.95); opacity: 0.6; }
+  50% { transform: translate(-51%, -49%) rotate(1deg) scale(1.05); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(-0.5deg) scale(0.9); opacity: 0.6; }
+}
+
+@keyframes particles-orbit-2 {
+  0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 0.7; }
+  50% { transform: translate(-49%, -51%) rotate(-1deg) scale(1.1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(0.5deg) scale(0.95); opacity: 0.7; }
+}
+
+/* 3. Quỹ đạo bay lơ lửng cho các hạt GIỮA */
+@keyframes particles-float-center {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+  50% { transform: translate(-48%, -52%) scale(1.2); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+}
+/* --- CHỮ WEB QUẢN LÝ NHẤP NHÁY--- */
+.gradient-text {
+  background: linear-gradient(135deg, #ff4d5a  100%, #ff4d5a 100%);
+  filter: drop-shadow(0 0 10px rgba(190, 30, 45, 0.8));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  
+  /* Chạy hiệu ứng nhấp nháy phát sáng */
+  animation: nhap-nhay-neon 2s infinite ease-in-out;
+  display: inline-block;
+}
+
+@keyframes nhap-nhay-neon {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(190, 30, 45, 0.2));
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  50% {
+
+    filter: drop-shadow(0 0 10px rgba(190, 30, 45, 0.8)) 
+            drop-shadow(0 0 20px rgba(190, 30, 45, 0.8));
+    opacity: 1;
+    transform: scale(1.03); 
+  }
+}

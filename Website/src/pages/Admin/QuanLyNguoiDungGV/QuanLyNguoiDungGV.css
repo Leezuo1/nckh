@@ -1,0 +1,52 @@
+
+
+
+/* 3. Đảm bảo nhóm bộ lọc không bị co lại */
+.khung-quan-ly-gv-tong .nhom-bo-loc-phai {
+  flex-shrink: 0; 
+}
+.khung-quan-ly-gv-tong {
+  padding: 10px 0;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+/* KHUNG TRẮNG CHỨA BẢNG: Bo hẹp lại giống trang SV */
+.vung-chua-bang-gv-trang {
+  margin: 10px 30px 40px 30px;
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow: hidden; /* Giúp header xám bám sát viền bo */
+}
+
+
+.khung-quan-ly-gv-tong .vung-thanh-cong-cu-admin {
+  gap: 15px; /* Giảm khoảng cách để search bar dài hơn */
+  padding-right: 30px; /* Chỉnh lại lề phải cho cân đối */
+}
+
+.khung-quan-ly-gv-tong .nhom-bo-loc-phai {
+  flex-shrink: 0; /* Không cho bộ lọc bị bóp méo */
+}
+
+/* Đảm bảo bảng không có padding thừa */
+.khung-quan-ly-gv-tong .khung-bang-du-lieu {
+  padding: 0;
+}
+.khung-quan-ly-gv-tong .o-tim-kiem-lon {
+  max-width: 940px; 
+  flex: 1; /* Để nó tự động dãn ra chiếm hết chỗ trống */
+}
+
+.khung-quan-ly-gv-tong .vung-thanh-cong-cu-admin {
+  gap: 15px; /* Ní có thể chỉnh số này nhỏ lại nếu muốn sát hơn nữa */
+  padding-right: 60px; /* Cân đối lề phải */
+}
+
+@media (max-width: 1024px) {
+  .vung-chua-bang-gv-trang { margin: 10px 16px 32px; }
+  /* override padding-right cố định để toolbar không lệch khi đã wrap */
+  .khung-quan-ly-gv-tong .vung-thanh-cong-cu-admin { padding-right: 16px; }
+}

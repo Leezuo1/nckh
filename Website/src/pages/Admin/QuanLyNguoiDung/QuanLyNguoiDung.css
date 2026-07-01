@@ -1,0 +1,18 @@
+.khung-quan-ly-nguoi-dung {
+  padding: 20px 0;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+.vung-chua-bang-chinh {
+  margin: 10px 30px 40px 30px;
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow: hidden; /* Để bảng không chòi ra khỏi bo góc */
+}
+
+@media (max-width: 1024px) {
+  .vung-chua-bang-chinh { margin: 10px 16px 32px; }
+}

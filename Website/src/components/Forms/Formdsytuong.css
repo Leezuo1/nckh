@@ -1,0 +1,59 @@
+/* --- TRẠNG THÁI CHỜ ASSIGN (MÀU VÀNG) --- */
+.badge-cho-assign {
+  background: #fffbeb ; /* Vàng nhạt */
+  border: 1px solid #fef3c7;
+}
+.text-vang { color: #d97706; font-weight: 800; }
+.dot-status.vang { color: #f59e0b; animation: breathe 2s infinite; }
+
+@keyframes breathe {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+/* --- KHUNG THÔNG TIN CÓ DROP SHADOW --- */
+.vung-thong-tin-noi-bat {
+  background: #ffffff;
+  padding: 22px;
+  border-radius: 18px;
+  margin-top: 15px;
+  border: 1px solid #f1f5f9;
+  
+  /* Đổ bóng chuyên nghiệp */
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 
+              0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.vung-thong-tin-noi-bat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1);
+}
+
+/* --- ĐƯỜNG KẺ MỜ --- */
+.duong-ke-mo {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #6b6c6e, transparent);
+  margin: 20px auto;
+  width: 80%;
+}
+
+/* --- NÚT ASSIGN MÀU ĐỎ VL --- */
+.nut-assign-chinh {
+  padding: 10px 50px;
+  background: #be1e2d;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.nut-assign-chinh:hover {
+  background: #a31927;
+  box-shadow: 0 10px 20px rgba(190, 30, 45, 0.2);
+}
+
+/* Các style khác như Modal, Scroll ní giữ nguyên từ form cũ nhé */

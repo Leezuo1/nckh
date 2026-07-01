@@ -1,0 +1,14 @@
+.container-trang-chu {
+  width: 100%;
+  overflow-x: hidden; /* Tránh bị vỡ khung ngang */
+  background-color: #f8f9fa; /* Màu nền nhạt để làm nổi bật các Section trắng */
+}
+
+/* Footer trang chủ tông đen như ảnh mẫu */
+.footer-trang-chu {
+  background-color: #111827;
+  color: #9ca3af;
+  padding: 60px 20px;
+  text-align: center;
+  font-size: 14px;
+}

@@ -1,0 +1,201 @@
+/* Container bọc ngoài */
+.vung-danh-sach-ngoai {
+  background-color: #ffffff;
+  padding: 20px 24px;
+  border-radius: 12px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+
+/* Grid chia 3 cột */
+.khung-grid-the {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* Phần tiêu đề màu xanh tím than */
+.the-phan-tren {
+  background-color: #25244d;
+  padding: 15px 20px;
+  height: 160px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.the-tieu-de {
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.4;
+  margin: 0;
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Phần nội dung trắng bên dưới */
+.the-phan-duoi {
+  padding: 15px 20px 40px;
+  position: relative;
+  height: 130px;
+  overflow: hidden;
+}
+
+/* Các dòng thông tin chi tiết */
+.dong-thong-tin-the {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.nhan-xam {
+  color: #888;
+  width: 95px;
+  min-width: 95px;
+  display: inline-block;
+}
+
+.noi-dung-chu {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  display: inline-block;
+}
+
+.chu-dam {
+  color: #000;
+  font-weight: 600;
+}
+
+.chu-thuong {
+  color: #333;
+}
+
+.the-ngay-thang {
+  margin-left: auto;
+  color: #bbb;
+  font-size: 12px;
+}
+
+/* Nhãn trạng thái */
+.the-nhan-trang-thai {
+  position: absolute;
+  right: 15px;
+  bottom: 10px;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.the-nhan-trang-thai.xanh {
+  background-color: #dcfce7;
+  color: #22c55e;
+}
+
+.the-nhan-trang-thai.tim {
+  background-color: #e0e7ff;
+  color: #6366f1;
+}
+
+/* Thanh phân trang */
+.thanh-phan-trang {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.cum-phan-trang {
+  background: #f1f2f6;
+  padding: 4px 12px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cum-phan-trang button {
+  border: none;
+  background: none;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.cum-phan-trang button:hover:not(.active) {
+  background-color: #e2e4eb;
+  color: #25244d;
+}
+
+.cum-phan-trang button.active {
+  background: #25244d;
+  color: #fff;
+}
+
+.dau-ba-cham {
+  color: #666;
+  font-weight: 600;
+  padding: 0 5px;
+  display: inline-block;
+}
+
+.khong-co-du-lieu {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 50px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Hiệu ứng animation card */
+@keyframes troi-len-muot {
+  0%   { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.the-de-tai-don {
+  opacity: 0;
+  animation: troi-len-muot 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.the-de-tai-don:nth-child(1) { animation-delay: 0.1s; }
+.the-de-tai-don:nth-child(2) { animation-delay: 0.2s; }
+.the-de-tai-don:nth-child(3) { animation-delay: 0.3s; }
+.the-de-tai-don:nth-child(4) { animation-delay: 0.4s; }
+.the-de-tai-don:nth-child(5) { animation-delay: 0.5s; }
+.the-de-tai-don:nth-child(6) { animation-delay: 0.6s; }
+
+.the-de-tai-don:hover {
+  transform: scale(1.05);
+  z-index: 10;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  border-color: #be1e2d;
+}
+
+.the-de-tai-don:hover .the-tieu-de {
+  color: #be1e2d;
+  transition: color 0.3s ease;
+}
+
+.the-de-tai-don:hover .the-phan-tren {
+  filter: brightness(1.1);
+  transition: 0.3s;
+}

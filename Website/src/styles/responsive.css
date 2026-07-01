@@ -1,0 +1,115 @@
+/* ===== GLOBAL RESPONSIVE STYLES ===== */
+
+/* Tablet và mobile: thu nhỏ padding các white-box */
+@media (max-width: 768px) {
+  .white-box {
+    padding: 16px !important;
+  }
+
+  /* Header */
+  .header-inner {
+    padding: 0 12px !important;
+  }
+  .logo-img {
+    height: 32px !important;
+  }
+
+  /* Search bar group */
+  .toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .page-title {
+    font-size: 18px !important;
+  }
+  .search-input {
+    width: 100% !important;
+  }
+
+  /* Idea grid: 1 cột */
+  .idea-grid,
+  .khung-grid-the,
+  .khung-grid-the-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Profile: cột dọc */
+  .profile-page {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .profile-left,
+  .profile-right {
+    width: 100% !important;
+  }
+
+  /* Admin pages */
+  .khung-quan-ly-detai,
+  .khung-quan-ly-ytuong,
+  .khung-quan-ly-gv-tong,
+  .setting-container {
+    padding: 12px !important;
+  }
+  .luoi-danh-sach,
+  .luoi-danh-sach-ytuong {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Sidebar admin: ẩn label, chỉ hiện icon */
+  .khung-sidebar-admin {
+    width: 60px !important;
+  }
+  .nhan-menu,
+  .chu-logo,
+  .tieu-de-nhom,
+  .thong-tin-ca-nhan,
+  .chu-cai-dat {
+    display: none !important;
+  }
+
+  /* Topic detail: charts dọc */
+  .chart-row {
+    flex-direction: column !important;
+  }
+
+  /* Modal */
+  .modal-container {
+    width: 95% !important;
+    max-width: none !important;
+  }
+  .student-fields {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Setting page */
+  .setting-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-main-title {
+    font-size: 32px !important;
+    line-height: 1.2 !important;
+  }
+  .hero-subtitle {
+    font-size: 13px !important;
+  }
+  .hero-cta-group {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  .btn-primary, .btn-secondary {
+    width: 100% !important;
+  }
+  .hero-stats-bar {
+    gap: 20px !important;
+  }
+  .stat-value {
+    font-size: 22px !important;
+  }
+  .stat-label {
+    font-size: 11px !important;
+  }
+}

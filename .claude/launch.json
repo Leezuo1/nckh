@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tesla",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5500", "--directory", "tesla-bootstrap"],
+      "port": 5500
+    }
+  ]
+}

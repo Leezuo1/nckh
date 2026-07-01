@@ -1,0 +1,310 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
+
+/* --- NEN VA KHUNG CHINH --- */
+.nen-mo-fixed {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.khung-modal-chinh {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 620px;
+  border-radius: 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+  animation: hieuUngModalHienRa 0.22s ease both;
+  overflow: hidden;
+}
+
+@keyframes hieuUngModalHienRa {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.vung-cuon-modal {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.vung-cuon-modal::-webkit-scrollbar { width: 4px; }
+.vung-cuon-modal::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+/* --- HEADER VA CHU NGHIA --- */
+.dem-le-ngang { padding-left: 28px; padding-right: 28px; }
+.dem-le-tren { padding-top: 24px; }
+.dem-le-duoi { padding-bottom: 24px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-12 { margin-bottom: 12px; }
+
+.the-trang-thai-mini {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 100px;
+  font-size: 12px; font-weight: 700;
+}
+
+.cham-tron-nho { width: 6px; height: 6px; border-radius: 50%; }
+
+.nut-dong-modal-x {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: #f9fafb; border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: #9ca3af; transition: 0.2s;
+}
+.nut-dong-modal-x:hover { background: #fee2e2; color: #ef4444; }
+
+.tieu-de-chinh-de-tai {
+  font-size: 22px; font-weight: 800; color: #1a2035;
+  line-height: 1.3; margin-bottom: 12px;
+}
+
+.mo-ta-chi-tiet-van-ban {
+  font-size: 14px; color: #6b7280; line-height: 1.6;
+  margin-bottom: 20px; font-family: 'Manrope', sans-serif;
+}
+
+.duong-phan-cach-ngang {
+  height: 1px; background-color: #f0f2f5; margin-bottom: 20px;
+}
+
+/* --- GRID VA DROPDOWN --- */
+.luoi-hai-cot { display: grid; grid-template-cols: 1fr 1fr; }
+.khoang-cach-le-5 { gap: 20px; }
+.khoang-cach-le-3 { gap: 12px; }
+
+.nhan-kem-icon {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;
+}
+
+.chu-nhan-nho { font-size: 12px; }
+.gia-tri-chu-dam { font-size: 14px; font-weight: 700; color: #1a2035; }
+
+.vung-chua-dropdown { position: relative; }
+
+.nut-bam-mo-menu {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb;
+  background: white; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: 0.2s; color: #374151; font-family: 'Manrope', sans-serif;
+}
+.nut-bam-mo-menu.dang-kich-hoat { border-color: #3b82f6; }
+
+.menu-tha-xuong-tuy-chon {
+  position: absolute; top: 105%; left: 0; right: 0;
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1); padding: 5px; z-index: 100;
+}
+
+.item-trong-menu {
+  width: 100%; text-align: left; padding: 10px 12px;
+  border-radius: 8px; border: none; background: transparent;
+  font-size: 14px; cursor: pointer; transition: 0.2s; color: #374151;
+}
+.item-trong-menu:hover { background: #f9fafb; color: #3b82f6; }
+.item-trong-menu.dang-chon-item { background: rgba(59,130,246,0.06); color: #3b82f6; font-weight: 700; }
+
+/* --- THE THONG TIN (CARD) --- */
+.the-thong-tin-xam {
+  background: #f8fafc; border-radius: 16px; padding: 16px;
+  border: 1px solid #f0f2f5; margin-bottom: 20px;
+}
+
+.hang-canh-giua { display: flex; align-items: center; }
+.khoang-cach-le-2 { gap: 8px; }
+
+.chu-nhan-the-uppercase {
+  font-size: 11px; font-weight: 800; color: #374151;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.hop-icon-xanh-duong { width: 24px; height: 24px; border-radius: 6px; background: rgba(59,130,246,0.12); display: flex; align-items: center; justify-content: center; }
+.hop-icon-xanh-la { width: 24px; height: 24px; border-radius: 6px; background: rgba(16,185,129,0.12); display: flex; align-items: center; justify-content: center; }
+.hop-icon-tim { width: 24px; height: 24px; border-radius: 6px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; }
+
+.nhan-phu-nho { font-size: 11px; color: #9ca3af; margin-bottom: 2px; }
+.gia-tri-chinh-dam { font-size: 14px; font-weight: 700; color: #1a2035; }
+
+/* --- TEP DINH KEM --- */
+.khoang-cach-doc-2 > * + * { margin-top: 8px; }
+.khoang-cach-doc-5 > * + * { margin-top: 20px; }
+
+.thanh-tep-dinh-kem {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 10px; border: 1px solid #e5e7eb;
+  background: white; cursor: pointer; transition: 0.2s;
+}
+.thanh-tep-dinh-kem:hover { background: #f0f7ff; border-color: #bfdbfe; }
+
+.icon-tep-xanh-mem { width: 28px; height: 28px; border-radius: 6px; background: rgba(59, 130, 246, 0.1); display: flex; align-items: center; justify-content: center; }
+.icon-tep-do-mem { width: 28px; height: 28px; border-radius: 6px; background: rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; }
+.ten-tep-van-ban { font-size: 13px; font-weight: 600; color: #374151; }
+
+/* --- FOOTER --- */
+.phan-chan-modal {
+  padding: 16px 28px; border-top: 1px solid #f0f2f5;
+  background: white; display: flex; justify-content: flex-end; gap: 12px;
+}
+
+.nut-dong-footer {
+  padding: 10px 24px; border-radius: 12px; border: none;
+  background: #f3f4f6; color: #6b7280; font-weight: 700; cursor: pointer;
+}
+.nut-dong-footer:hover { background: #e5e7eb; color: #374151; }
+
+.nut-luu-footer {
+  padding: 10px 28px; border-radius: 12px; border: none;
+  background: #3b82f6; color: white; font-weight: 700; cursor: pointer;
+}
+.nut-luu-footer:hover { background: #2563eb; }
+
+/* --- TIEN ICH --- */
+.hang-giua-biet-lap { display: flex; justify-content: space-between; align-items: center; }
+.xoay-mui-ten { transform: rotate(180deg); transition: 0.3s; }
+/* --- CHỈNH LẠI CĂN TRÁI CHO THÔNG TIN NHÂN SỰ --- */
+.nhom-du-lieu-don {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Ép các phần tử con bám sát lề trái */
+  text-align: left;        /* Căn lề chữ bên trái */
+  width: 100%;
+}
+
+.nhan-phu-nho, 
+.gia-tri-chinh-dam {
+  text-align: left;
+  margin: 0; /* Bỏ margin thừa nếu có để không bị lệch */
+}
+
+/* Đảm bảo khung lưới không căn giữa các item */
+.luoi-hai-cot {
+  display: grid;
+  grid-template-cols: 1.5fr 1fr; /* Tỉ lệ cho tên dài hơn mã số */
+  justify-items: start;
+  gap: 20px;
+}
+/* --- HÀNG NĂM & TÌNH TRẠNG --- */
+.luoi-hai-cot {
+  display: grid;
+  /* Chia 2 cột đều nhau hoặc nhích cột trái rộng hơn một chút */
+  grid-template-cols: 1fr 1fr; 
+  gap: 20px;
+  /* QUAN TRỌNG: Thêm padding-right để cả hàng không chạm sát lề phải modal */
+  padding-right: 30px; 
+}
+
+/* --- KHỐI NHẬP LIỆU TÌNH TRẠNG (Cột bên phải) --- */
+.nhom-nhap-lieu:last-child {
+  /* Giới hạn chiều rộng của cả khối Tình Trạng */
+  max-width: 240px; 
+  /* Đẩy toàn bộ khối này sang bên phải của cột thứ 2 */
+  justify-self: end; 
+}
+
+/* --- Ô SELECT TÙY CHỈNH --- */
+.nut-bam-mo-menu {
+  width: 100%; /* Sẽ ăn theo max-width 240px ở trên */
+  min-width: 180px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+/* --- HÀNG CHỨA NĂM VÀ TÌNH TRẠNG (ÉP NẰM CÙNG HÀNG) --- */
+.luoi-hai-cot {
+  display: flex;             /* Chuyển sang flex để chắc chắn nằm ngang */
+  justify-content: space-between; /* Đẩy 2 khối về 2 phía */
+  align-items: flex-start;   /* Căn lề trên cùng nhau */
+  width: 100%;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* Khối chung cho mỗi cột */
+.nhom-nhap-lieu {
+  flex: 1;                   /* Chia đôi không gian */
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- ĐIỀU CHỈNH RIÊNG CHO CỘT TÌNH TRẠNG (BÊN PHẢI) --- */
+.nhom-nhap-lieu:last-child {
+  align-items: flex;     /* Đẩy cả nhãn và ô chọn sang phải */
+  text-align: right;
+  padding-right: 20px;       /* Khoảng trống nhỏ với lề phải modal */
+}
+
+/* Đẩy Icon và Chữ của nhãn "Tình trạng" sang phải */
+.nhom-nhap-lieu:last-child .nhan-kem-icon {
+  justify-content: flex; 
+  width: 100%;
+}
+
+.nut-bam-mo-menu {
+  width: 100%;               /* Rộng bằng vung-chua-dropdown */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+/* --- KHỐI NĂM (BÊN TRÁI) --- */
+.nhom-nhap-lieu {
+  display: flex;
+  flex-direction: column;   /* Xếp dọc: Nhãn ở trên, Giá trị ở dưới */
+  align-items: flex-start;  /* Ép tất cả bám sát lề trái */
+  gap: 4px;                 /* Khoảng cách giữa chữ Năm và số năm */
+}
+
+.nhan-kem-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.gia-tri-chu-dam {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a2035;
+  margin: 0;
+  /* Mẹo nhỏ: Thêm padding-left để số năm thẳng hàng với chữ "Năm" (bỏ qua độ rộng icon) */
+  padding-left: 22px; 
+}
+/* 1. Chặn tuyệt đối không cho hiện thanh cuộn ngang */
+.vung-cuon-modal {
+  overflow-y: auto;    /* Chỉ cho cuộn dọc */
+  overflow-x: hidden;  /* KHÓA cuộn ngang - Đây là dòng quan trọng nhất */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 2. Cấu hình lại thanh cuộn để nó không tự hiện thanh ngang */
+.vung-cuon-modal::-webkit-scrollbar {
+  width: 5px;   /* Độ rộng thanh cuộn đứng */
+  height: 0px;  /* Đặt độ cao thanh cuộn ngang bằng 0 để nó biến mất hẳn */
+}
+
+.vung-cuon-modal::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}

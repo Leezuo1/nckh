@@ -1,0 +1,102 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import MainLayout from '../layouts/MainLayout'
+import AdminLayout from '../layouts/AdminLayout'
+import ProtectedRoute from './ProtectedRoute'
+
+// User pages
+import Trangchu from '../pages/User/Trangchu/Trangchu'
+import DanhSachDeTai from '../pages/User/DanhSachDeTai/DanhSachDeTai'
+import DanhSachYTuong from '../pages/User/DanhSachYTuong/DanhSachYTuong'
+import GiaoDienDangNhap from '../pages/User/Login/GiaoDienDangNhap'
+import MyTopicPage from '../pages/User/MyTopic/MyTopicPage'
+import ProfilePage from '../pages/User/Profile/ProfilePage'
+import RegisterIdeaPage from '../pages/User/RegisterIdea/RegisterIdeaPage'
+import TopicDetailPage from '../pages/User/TopicDetail/TopicDetailPage'
+import NotFound from '../pages/NotFound/NotFound'
+
+// Admin pages
+import QuanLyNguoiDung from '../pages/Admin/QuanLyNguoiDung/QuanLyNguoiDung'
+import QuanLyNguoiDungSV from '../pages/Admin/QuanLyNguoiDungSV/QuanLyNguoiDungSV'
+import QuanLyNguoiDungGV from '../pages/Admin/QuanLyNguoiDungGV/QuanLyNguoiDungGV'
+import DSdetaiAdmin from '../pages/Admin/DSdetaiAdmin/DSdetaiAdmin'
+import DSytuongAdmin from '../pages/Admin/DSytuongAdmin/DSytuongAdmin'
+import QuanLyYTuong from '../pages/Admin/QuanLyYTuong/QuanLyYTuong'
+import Setting from '../pages/Admin/Setting/Setting'
+
+const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+
+        {/* ===== USER ROUTES - MainLayout ===== */}
+        <Route path="/" element={
+          <MainLayout><Trangchu /></MainLayout>
+        } />
+
+        <Route path="/login" element={
+          <GiaoDienDangNhap />
+        } />
+
+        <Route path="/danh-sach-de-tai" element={
+          <ProtectedRoute><MainLayout><DanhSachDeTai /></MainLayout></ProtectedRoute>
+        } />
+
+        <Route path="/danh-sach-y-tuong" element={
+          <ProtectedRoute><MainLayout><DanhSachYTuong /></MainLayout></ProtectedRoute>
+        } />
+
+        <Route path="/dang-ky-y-tuong" element={
+          <ProtectedRoute><MainLayout><RegisterIdeaPage /></MainLayout></ProtectedRoute>
+        } />
+
+        <Route path="/de-tai-cua-toi" element={
+          <ProtectedRoute><MainLayout><MyTopicPage /></MainLayout></ProtectedRoute>
+        } />
+
+        <Route path="/de-tai-cua-toi/:id" element={
+          <ProtectedRoute><MainLayout><TopicDetailPage /></MainLayout></ProtectedRoute>
+        } />
+
+        <Route path="/ho-so" element={
+          <ProtectedRoute><MainLayout><ProfilePage /></MainLayout></ProtectedRoute>
+        } />
+
+        {/* ===== ADMIN ROUTES (chỉ role Admin mới vào được) ===== */}
+        <Route path="/admin/de-tai" element={
+          <ProtectedRoute requiredRole="Admin"><AdminLayout><DSdetaiAdmin /></AdminLayout></ProtectedRoute>
+        } />
+
+        <Route path="/admin/y-tuong" element={
+          <ProtectedRoute requiredRole="Admin"><AdminLayout><DSytuongAdmin /></AdminLayout></ProtectedRoute>
+        } />
+
+        <Route path="/admin/quan-ly-y-tuong" element={
+          <ProtectedRoute requiredRole="Admin"><AdminLayout><QuanLyYTuong /></AdminLayout></ProtectedRoute>
+        } />
+
+        <Route path="/admin/nguoi-dung" element={
+          <ProtectedRoute requiredRole="Admin"><AdminLayout><QuanLyNguoiDung /></AdminLayout></ProtectedRoute>
+        } />
+
+        <Route path="/admin/sinh-vien" element={
+          <ProtectedRoute requiredRole="Admin"><AdminLayout><QuanLyNguoiDungSV /></AdminLayout></ProtectedRoute>
+        } />
+
+        <Route path="/admin/giang-vien" element={
+          <ProtectedRoute requiredRole="Admin"><AdminLayout><QuanLyNguoiDungGV /></AdminLayout></ProtectedRoute>
+        } />
+
+        <Route path="/admin/setting" element={
+          <ProtectedRoute requiredRole="Admin"><AdminLayout><Setting /></AdminLayout></ProtectedRoute>
+        } />
+
+        {/* ===== 404 — URL không khớp route nào (luồng phụ) ===== */}
+        <Route path="*" element={
+          <MainLayout><NotFound /></MainLayout>
+        } />
+      </Routes>
+    </BrowserRouter>
+  )
+}
+
+export default AppRoutes

@@ -1,0 +1,110 @@
+/* --- NỀN MỜ --- */
+.nen-modal-canh-bao {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 20000; /* Nằm trên tất cả các modal khác */
+  backdrop-filter: blur(4px);
+}
+
+.khung-canh-bao-chinh {
+  background: #ffffff;
+  width: 420px;
+  padding: 40px 30px;
+  border-radius: 24px;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: canh-bao-hien-ra 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes canh-bao-hien-ra {
+  from { transform: scale(0.9) translateY(10px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* --- BIỂU TƯỢNG --- */
+.biu-tuong-canh-bao {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.bg-vang { background: #fffbeb; color: #f59e0b; animation: pulse-canh-bao-vang 2s infinite; }
+.bg-do { background: #fef2f2; color: #ef4444; animation: pulse-canh-bao-do 2s infinite; }
+
+@keyframes pulse-canh-bao-vang {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+/* --- CHỮ NGHĨA --- */
+.tieu-de-canh-bao {
+  font-size: 20px;
+  font-weight: 850;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.mo-ta-canh-bao {
+  font-size: 14.5px;
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+/* --- NÚT BẤM --- */
+.nhom-nut-thao-tac {
+  display: flex;
+  gap: 12px;
+}
+
+.nut-huy-bo {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.nut-huy-bo:hover { background: #f8fafc; color: #1e293b; }
+
+.nut-xac-nhan-chinh {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-vang { background: #f59e0b; }
+.btn-vang:hover { background: #d97706; transform: translateY(-2px); }
+
+.btn-do { background: #ef4444; }
+.btn-do:hover { background: #dc2626; transform: translateY(-2px); }
+
+.nut-dong-canh-bao {
+  position: absolute;
+  top: 15px; right: 15px;
+  background: none; border: none;
+  color: #cbd5e1; cursor: pointer;
+  transition: 0.3s;
+}
+
+.nut-dong-canh-bao:hover { color: #1e293b; transform: rotate(90deg); }

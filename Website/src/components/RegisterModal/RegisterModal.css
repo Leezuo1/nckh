@@ -1,0 +1,266 @@
+/* Lớp mờ phía sau modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Khung modal */
+.modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 16px;
+  width: 620px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px 16px;
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.modal-close:hover {
+  background: #f5f5f5;
+}
+
+.modal-divider {
+  height: 1px;
+  background: #eeeeee;
+  margin: 0;
+}
+
+/* Body - có scroll */
+.modal-body {
+  overflow-y: auto;
+  padding: 0 28px;
+  flex: 1;
+}
+
+/* Nhóm form */
+.form-group {
+  padding: 18px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Input text */
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: #be1e2d;
+}
+
+/* Textarea mô tả */
+.form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.form-textarea:focus {
+  border-color: #be1e2d;
+}
+
+/* Select khoa */
+.select-wrap {
+  position: relative;
+}
+
+.form-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+}
+
+.form-select .placeholder {
+  color: #aaa;
+}
+
+.select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.select-item {
+  padding: 10px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.select-item:hover {
+  background: #f5f5f5;
+}
+
+.select-item.selected {
+  background: #fff0f0;
+  color: #be1e2d;
+  font-weight: 600;
+}
+
+/* Hàng sinh viên */
+.student-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.student-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+.student-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  gap: 8px;
+}
+
+/* Select nhỏ cho Năm và Khóa */
+.form-select-small {
+  padding: 10px 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 13px;
+  background: white;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Nút thêm sinh viên */
+.btn-add-student {
+  width: fit-content;
+  margin: 4px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-add-student:hover {
+  background: #eeeeee;
+}
+
+/* Footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 28px 24px;
+}
+
+.btn-save-draft {
+  padding: 10px 24px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-save-draft:hover {
+  background: #f5f5f5;
+}
+
+.btn-confirm {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  background: #be1e2d;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-confirm:hover {
+  background: #a01825;
+}
+
+/* Viền đỏ khi có lỗi */
+.input-error {
+  border-color: #be1e2d !important;
+}
+
+/* Text thông báo lỗi */
+.error-msg {
+  font-size: 12px;
+  color: #be1e2d;
+  margin-top: 2px;
+}

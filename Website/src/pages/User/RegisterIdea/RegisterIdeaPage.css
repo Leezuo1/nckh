@@ -1,0 +1,48 @@
+.register-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.white-box {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+
+.btn-register {
+  padding: 9px 18px;
+  border: 1.5px solid #333;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.btn-register:hover {
+  background: #be1e2d;
+  color: white;
+  border-color: #be1e2d;
+}
+
+.idea-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 0;
+  font-size: 16px;
+  color: #888;
+}
