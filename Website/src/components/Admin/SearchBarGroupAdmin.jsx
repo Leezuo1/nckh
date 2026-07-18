@@ -29,6 +29,9 @@ const SearchBarGroupAdmin = ({
   const getLabelVaiTro = (val) => {
     if (val === "sinh_vien") return "Sinh Viên";
     if (val === "giang_vien") return "Giảng Viên";
+    if (val === "can_bo_khoa") return "Cán bộ NCKH Khoa";
+    if (val === "can_bo_phong") return "Cán bộ Phòng NCKH";
+    if (val === "truong_khoa") return "Trưởng Khoa";
     if (val === "admin") return "Admin";
     return "Tất cả vai trò";
   };
@@ -68,6 +71,9 @@ const SearchBarGroupAdmin = ({
                 <li className={vaiTro === "all" ? "selected" : ""} onClick={() => { setVaiTro("all"); setMoVaiTro(false); }}>Tất cả vai trò</li>
                 <li className={vaiTro === "sinh_vien" ? "selected" : ""} onClick={() => { setVaiTro("sinh_vien"); setMoVaiTro(false); }}>Sinh Viên</li>
                 <li className={vaiTro === "giang_vien" ? "selected" : ""} onClick={() => { setVaiTro("giang_vien"); setMoVaiTro(false); }}>Giảng Viên</li>
+                <li className={vaiTro === "can_bo_khoa" ? "selected" : ""} onClick={() => { setVaiTro("can_bo_khoa"); setMoVaiTro(false); }}>Cán bộ NCKH Khoa</li>
+                <li className={vaiTro === "can_bo_phong" ? "selected" : ""} onClick={() => { setVaiTro("can_bo_phong"); setMoVaiTro(false); }}>Cán bộ Phòng NCKH</li>
+                <li className={vaiTro === "truong_khoa" ? "selected" : ""} onClick={() => { setVaiTro("truong_khoa"); setMoVaiTro(false); }}>Trưởng Khoa</li>
                 <li className={vaiTro === "admin" ? "selected" : ""} onClick={() => { setVaiTro("admin"); setMoVaiTro(false); }}>Admin</li>
               </ul>
             )}

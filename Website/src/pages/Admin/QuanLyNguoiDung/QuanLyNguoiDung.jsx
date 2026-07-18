@@ -27,7 +27,14 @@ const QuanLyNguoiDung = () => {
   const filteredData = data.filter(item => {
     const matchSearch = item.ten.toLowerCase().includes(tuKhoa.toLowerCase()) ||
                         item.email.toLowerCase().includes(tuKhoa.toLowerCase());
-    const roleKeyMap = { sinh_vien: 'Student', giang_vien: 'Lecturer', admin: 'Admin' };
+    const roleKeyMap = {
+      sinh_vien: 'Student',
+      giang_vien: 'Lecturer',
+      can_bo_khoa: 'FacultyOfficer',
+      can_bo_phong: 'DepartmentOfficer',
+      truong_khoa: 'FacultyDean',
+      admin: 'Admin',
+    };
     const matchVaiTro = vaiTro === "all" || item.vaiTroRaw === roleKeyMap[vaiTro];
     let matchTrangThai = true;
     if (trangThai === "hoat_dong") matchTrangThai = item.trangThai === true;
@@ -58,7 +65,14 @@ const QuanLyNguoiDung = () => {
   const handleEditRole = async (id, newRole) => {
     try {
       await userService.updateUser(id, { role: newRole });
-      const roleMap = { Student: 'Sinh Viên', Lecturer: 'Giảng Viên', Admin: 'Admin' };
+      const roleMap = {
+        Student: 'Sinh Viên',
+        Lecturer: 'Giảng Viên',
+        FacultyOfficer: 'Cán bộ NCKH Khoa',
+        DepartmentOfficer: 'Cán bộ Phòng NCKH',
+        FacultyDean: 'Trưởng Khoa',
+        Admin: 'Admin',
+      };
       setData(prev => prev.map(item =>
         item.id === id ? { ...item, vaiTro: roleMap[newRole], vaiTroRaw: newRole } : item
       ));

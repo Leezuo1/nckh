@@ -6,6 +6,9 @@ import './BangNguoiDung.css';
 const ROLES = [
   { value: 'Student', label: 'Sinh Viên' },
   { value: 'Lecturer', label: 'Giảng Viên' },
+  { value: 'FacultyOfficer', label: 'Cán bộ NCKH Khoa' },
+  { value: 'DepartmentOfficer', label: 'Cán bộ Phòng NCKH' },
+  { value: 'FacultyDean', label: 'Trưởng Khoa' },
   { value: 'Admin', label: 'Admin' },
 ];
 

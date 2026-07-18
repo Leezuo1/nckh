@@ -204,6 +204,9 @@
     "role": {
       "Student": "Sinh Viên",
       "Lecturer": "Giảng Viên",
+      "FacultyOfficer": "Cán bộ NCKH Khoa",
+      "DepartmentOfficer": "Cán bộ Phòng NCKH",
+      "FacultyDean": "Trưởng Khoa",
       "Admin": "Admin"
     }
   },

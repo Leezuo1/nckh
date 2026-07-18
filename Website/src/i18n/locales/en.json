@@ -204,6 +204,9 @@
     "role": {
       "Student": "Student",
       "Lecturer": "Lecturer",
+      "FacultyOfficer": "Faculty Research Officer",
+      "DepartmentOfficer": "Department Research Officer",
+      "FacultyDean": "Dean",
       "Admin": "Admin"
     }
   },

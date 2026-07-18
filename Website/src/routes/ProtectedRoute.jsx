@@ -13,9 +13,13 @@ const ProtectedRoute = ({ children, requiredRole }) => {
     return <Navigate to="/login" replace />
   }
 
-  // Kiểm tra role nếu có yêu cầu (ví dụ: requiredRole="Admin")
-  if (requiredRole && userInfo?.role !== requiredRole) {
-    return <Navigate to="/" replace />
+  // Kiểm tra role nếu có yêu cầu. Chấp nhận 1 chuỗi (requiredRole="Admin")
+  // hoặc mảng nhiều vai trò (requiredRole={["FacultyOfficer","DepartmentOfficer"]}).
+  if (requiredRole) {
+    const allowed = Array.isArray(requiredRole) ? requiredRole : [requiredRole]
+    if (!allowed.includes(userInfo?.role)) {
+      return <Navigate to="/" replace />
+    }
   }
 
   return children

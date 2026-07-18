@@ -29,7 +29,18 @@
       "Bash(mv vendor/bootstrap/bootstrap.bundle.min.js js/bootstrap.bundle.min.js)",
       "Bash(mv vendor/bootstrap-icons/bootstrap-icons.min.css css/bootstrap-icons.min.css)",
       "Bash(mv vendor/bootstrap-icons/fonts/bootstrap-icons.woff2 css/fonts/bootstrap-icons.woff2)",
-      "Bash(cd /e/Code/NCKH/Website && grep -rln \"logo\\\\|Logo\\\\|favicon\\\\|Lưu thay đổi\\\\|Mô tả meta\" src --include=*.jsx --include=*.js -i | head -30)"
+      "Bash(cd /e/Code/NCKH/Website && grep -rln \"logo\\\\|Logo\\\\|favicon\\\\|Lưu thay đổi\\\\|Mô tả meta\" src --include=*.jsx --include=*.js -i | head -30)",
+      "Bash(git config *)",
+      "Bash(git commit *)",
+      "Bash(echo \"=== exit: $? ===\")",
+      "Bash(git ls-files *)",
+      "Bash(python -)",
+      "Bash(python \"C:/Users/Admin/AppData/Local/Temp/claude/E--Code-NCKH/d66f5a97-d088-4f6e-9bf1-c76311a8797c/scratchpad/casecheck.py\")",
+      "Bash(npm run *)",
+      "Bash(curl -s -m 70 https://nckh-05ey.onrender.com/api/stats/public)",
+      "Bash(curl -s -m 70 -I -H \"Origin: https://nckh-three.vercel.app\" https://nckh-05ey.onrender.com/api/stats/public)",
+      "Bash(curl -s -m 70 -I -X OPTIONS -H \"Origin: https://nckh-three.vercel.app\" -H \"Access-Control-Request-Method: POST\" -H \"Access-Control-Request-Headers: content-type\" https://nckh-05ey.onrender.com/api/auth/login)",
+      "Read(//e/Code/prisma/**)"
     ]
   }
 }

@@ -10,8 +10,11 @@ enum Gender {
   Female
 }
 enum UserRole {
-  Student
-  Lecturer
+  Student           // Sinh viên (SV)
+  Lecturer          // Giảng viên hướng dẫn (GVHD)
+  FacultyOfficer    // Cán bộ NCKH Khoa
+  DepartmentOfficer // Cán bộ Phòng NCKH
+  FacultyDean       // Trưởng Khoa
   Admin
 }
 enum UserStatus {
