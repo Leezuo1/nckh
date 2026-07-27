@@ -23,6 +23,14 @@ enum UserStatus {
 }
 enum TopicStatus {
   Pending
+  // ===== Quy trình duyệt nhiều cấp theo SRS (Phụ lục A, trạng thái 1→6) =====
+  Draft                   // 1. Nháp — nhóm đang soạn thuyết minh
+  PendingFacultyReview    // 2. Chờ Cán bộ NCKH Khoa duyệt
+  FacultyRevision         // 3. Khoa yêu cầu chỉnh sửa
+  PendingDepartmentReview // 4. Chờ Cán bộ Phòng NCKH duyệt
+  DepartmentRevision      // 5. Phòng yêu cầu chỉnh sửa
+  PendingProposalCouncil  // 6. Chờ Hội đồng đề cương (bàn giao cho pha Hội đồng)
+  // ===== Vòng đời thực hiện (đã có) =====
   WaitingToStart // Chờ bắt đầu (sau khi duyệt assign)
   InProgress
   Reporting      // Báo Cáo (khoá, chỉ tải tài liệu)
@@ -34,7 +42,17 @@ enum TopicParticipantRole {
   Supervisor //giảng viên hướng dẫn
   Leader //chủ nhiệm đề tài
   Member
-  PendingMember //đang xin tham gia, chờ Leader duyệt
+  PendingMember //đang xin tham gia, chờ Leader duyệt (luồng ý tưởng cũ)
+  Invited //GVHD mời, chờ SV chấp nhận (luồng SRS mới)
+}
+enum ApprovalLevel {
+  Supervisor // GVHD duyệt sơ bộ / trình Khoa
+  Faculty    // Cán bộ NCKH Khoa
+  Department // Cán bộ Phòng NCKH
+}
+enum ApprovalDecision {
+  Approved
+  Rejected
 }
 enum AcademicDegree {
   Master
@@ -86,11 +104,38 @@ model Topic {
   editDeadline DateTime? // Hạn cho phép chỉnh sửa khi ở trạng thái Editing (hết giờ → Done)
   teamMembersInfo Json? // Danh sách SV điền lúc xin assign (kể cả MSSV không khớp DB)
   progressHistory Json? // Lịch sử tiến độ: [{ date, value }]
+  currentProposalVersion Int? // Phiên bản thuyết minh mới nhất (luồng SRS)
   submitter User? @relation("Submitter", fields: [submitterId], references: [id])
   topicParticipant TopicParticipant[]
   documents Document[]
   timelines Timeline[]
   activities Activity[]
+  proposalVersions ProposalVersion[]
+  approvalRecords ApprovalRecord[]
+}
+
+// Lịch sử phiên bản hồ sơ thuyết minh (FR-11)
+model ProposalVersion {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  topicId String @db.ObjectId
+  version Int
+  content Json // các mục biểu mẫu thuyết minh
+  submittedById String? @db.ObjectId // để raw ObjectId, không ràng buộc relation với User
+  note String?
+  created DateTime @default(now())
+  topic Topic @relation(fields: [topicId], references: [id])
+}
+
+// Lịch sử duyệt nhiều cấp (FR-16)
+model ApprovalRecord {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  topicId String @db.ObjectId
+  level ApprovalLevel
+  decision ApprovalDecision
+  comment String?
+  reviewerId String? @db.ObjectId // raw ObjectId, resolve tên thủ công khi hiển thị
+  created DateTime @default(now())
+  topic Topic @relation(fields: [topicId], references: [id])
 }
 model TopicParticipant {
   id String @id @default(auto()) @map("_id") @db.ObjectId

@@ -166,6 +166,12 @@
   },
   "status": {
     "Pending": "Chờ xét duyệt",
+    "Draft": "Nháp",
+    "PendingFacultyReview": "Chờ Khoa duyệt",
+    "FacultyRevision": "Khoa yêu cầu chỉnh sửa",
+    "PendingDepartmentReview": "Chờ Phòng duyệt",
+    "DepartmentRevision": "Phòng yêu cầu chỉnh sửa",
+    "PendingProposalCouncil": "Chờ Hội đồng đề cương",
     "WaitingToStart": "Chờ bắt đầu",
     "InProgress": "Đang Thực Hiện",
     "Late": "Trễ",

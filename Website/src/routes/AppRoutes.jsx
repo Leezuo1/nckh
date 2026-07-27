@@ -12,6 +12,9 @@ import MyTopicPage from '../pages/User/MyTopic/MyTopicPage'
 import ProfilePage from '../pages/User/Profile/ProfilePage'
 import RegisterIdeaPage from '../pages/User/RegisterIdea/RegisterIdeaPage'
 import TopicDetailPage from '../pages/User/TopicDetail/TopicDetailPage'
+import LoiMoi from '../pages/User/LoiMoi/LoiMoi'
+import NhomNghienCuu from '../pages/GVHD/NhomNghienCuu'
+import HangChoDuyet from '../pages/Officer/HangChoDuyet'
 import NotFound from '../pages/NotFound/NotFound'
 
 // Admin pages
@@ -59,6 +62,19 @@ const AppRoutes = () => {
 
         <Route path="/ho-so" element={
           <ProtectedRoute><MainLayout><ProfilePage /></MainLayout></ProtectedRoute>
+        } />
+
+        {/* ===== LUỒNG SRS: nhóm (GVHD), lời mời (SV), hàng chờ duyệt (cán bộ) ===== */}
+        <Route path="/loi-moi" element={
+          <ProtectedRoute><MainLayout><LoiMoi /></MainLayout></ProtectedRoute>
+        } />
+
+        <Route path="/gvhd/nhom" element={
+          <ProtectedRoute requiredRole={["Lecturer", "Admin"]}><MainLayout><NhomNghienCuu /></MainLayout></ProtectedRoute>
+        } />
+
+        <Route path="/duyet" element={
+          <ProtectedRoute requiredRole={["FacultyOfficer", "DepartmentOfficer", "Admin"]}><MainLayout><HangChoDuyet /></MainLayout></ProtectedRoute>
         } />
 
         {/* ===== ADMIN ROUTES (chỉ role Admin mới vào được) ===== */}

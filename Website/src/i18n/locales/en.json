@@ -166,6 +166,12 @@
   },
   "status": {
     "Pending": "Pending review",
+    "Draft": "Draft",
+    "PendingFacultyReview": "Pending faculty review",
+    "FacultyRevision": "Faculty revision requested",
+    "PendingDepartmentReview": "Pending department review",
+    "DepartmentRevision": "Department revision requested",
+    "PendingProposalCouncil": "Pending proposal council",
     "WaitingToStart": "Waiting to start",
     "InProgress": "In progress",
     "Late": "Late",

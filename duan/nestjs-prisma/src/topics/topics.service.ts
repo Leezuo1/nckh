@@ -4,7 +4,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { ActivitiesService } from '../activities/activities.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
-import { TopicStatus, UserRole, TopicParticipantRole } from '@prisma/client';
+import { TopicStatus, UserRole, TopicParticipantRole, ApprovalLevel, ApprovalDecision } from '@prisma/client';
 
 @Injectable()
 export class TopicsService {
@@ -20,6 +20,13 @@ export class TopicsService {
   // mới tạo · chờ duyệt · chờ assign (Pending) và đang thực hiện (InProgress).
   private readonly UNFINISHED_TOPIC_STATUSES = [
     TopicStatus.Pending,
+    // Luồng duyệt SRS: SV đang trong nhóm ở các trạng thái này vẫn coi là "đang dính"
+    TopicStatus.Draft,
+    TopicStatus.PendingFacultyReview,
+    TopicStatus.FacultyRevision,
+    TopicStatus.PendingDepartmentReview,
+    TopicStatus.DepartmentRevision,
+    TopicStatus.PendingProposalCouncil,
     TopicStatus.WaitingToStart,
     TopicStatus.InProgress,
     TopicStatus.Reporting,
@@ -136,12 +143,10 @@ export class TopicsService {
     const topics = await this.prisma.topic.findMany({
       where: {
         OR: [
-          // Đề tài đã assign + là participant
-          { isAssigned: true, topicParticipant: { some: { userId } } },
-          // Ý tưởng chưa assign + là người submit
-          { isAssigned: false, submitterId: userId },
-          // Ý tưởng chưa assign + mình đã xin tham gia (PendingMember)
-          { isAssigned: false, topicParticipant: { some: { userId, topicParticipantRole: 'PendingMember' } } },
+          // Là participant ở bất kỳ đề tài nào (mọi vai trò: Supervisor/Leader/Member/PendingMember/Invited)
+          { topicParticipant: { some: { userId } } },
+          // Là người tạo/đăng (GVHD tạo nhóm hoặc SV/GV đăng ý tưởng)
+          { submitterId: userId },
         ],
       },
       include: {
@@ -184,10 +189,25 @@ export class TopicsService {
           orderBy: { created: 'desc' },
           take: 20,
         },
+        proposalVersions: { orderBy: { version: 'desc' } },
+        approvalRecords: { orderBy: { created: 'desc' } },
       },
     });
 
     if (!topic) throw new NotFoundException('Không tìm thấy đề tài');
+    // Gắn tên người duyệt vào từng bản ghi duyệt (reviewerId là raw ObjectId, không có relation)
+    if (topic.approvalRecords?.length) {
+      const reviewerIds = [...new Set(topic.approvalRecords.map(a => a.reviewerId).filter(Boolean))] as string[];
+      const reviewers = await this.prisma.user.findMany({
+        where: { id: { in: reviewerIds } },
+        select: { id: true, fullName: true, role: true },
+      });
+      const byId = Object.fromEntries(reviewers.map(u => [u.id, u]));
+      (topic as any).approvalRecords = topic.approvalRecords.map(a => ({
+        ...a,
+        reviewer: a.reviewerId ? byId[a.reviewerId] || null : null,
+      }));
+    }
     const [decorated] = await this.decorateTopics([topic]);
     return decorated;
   }
@@ -633,6 +653,8 @@ export class TopicsService {
     await this.prisma.timeline.deleteMany({ where: { topicId: id } });
     await this.prisma.topicParticipant.deleteMany({ where: { topicId: id } });
     await this.prisma.topicAccess.deleteMany({ where: { topicId: id } });
+    await this.prisma.proposalVersion.deleteMany({ where: { topicId: id } });
+    await this.prisma.approvalRecord.deleteMany({ where: { topicId: id } });
     return this.prisma.topic.delete({ where: { id } });
   }
 
@@ -871,6 +893,341 @@ export class TopicsService {
       updated++;
     }
     return { updated };
+  }
+
+  // ===================================================================
+  // ===== LUỒNG SRS: NHÓM (GVHD) → HỒ SƠ → DUYỆT NHIỀU CẤP ============
+  // ===================================================================
+
+  private readonly GROUP_ROLES: TopicParticipantRole[] = [
+    TopicParticipantRole.Supervisor,
+    TopicParticipantRole.Leader,
+    TopicParticipantRole.Member,
+  ];
+
+  // Include chuẩn cho đề tài luồng SRS (dùng cho queue/detail)
+  private readonly SRS_INCLUDE = {
+    submitter: { select: { fullName: true, userId: true, faculty: true } },
+    topicParticipant: {
+      include: { user: { select: { fullName: true, userId: true, role: true, faculty: true } } },
+    },
+  };
+
+  // Đề tài + kiểm tra người gọi là GVHD hướng dẫn (Supervisor) hoặc Admin
+  private async assertSupervisor(topicId: string, userId: string) {
+    const topic = await this.prisma.topic.findUnique({
+      where: { id: topicId },
+      include: { topicParticipant: true },
+    });
+    if (!topic) throw new NotFoundException('Không tìm thấy đề tài');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const me = topic.topicParticipant.find(p => p.userId === userId);
+    const isSupervisor = me?.topicParticipantRole === TopicParticipantRole.Supervisor;
+    if (!isSupervisor && user?.role !== UserRole.Admin) {
+      throw new ForbiddenException('Chỉ GVHD hướng dẫn nhóm này mới được thao tác');
+    }
+    return topic;
+  }
+
+  // Đẩy thông báo cho toàn nhóm (Supervisor/Leader/Member)
+  private async notifyGroup(topicId: string, title: string, message: string, link?: string) {
+    const members = await this.prisma.topicParticipant.findMany({
+      where: { topicId, topicParticipantRole: { in: this.GROUP_ROLES } },
+    });
+    for (const m of members) {
+      if (m.userId) await this.notifications.create(m.userId, title, message, link);
+    }
+  }
+
+  // FR-07: GVHD tạo nhóm nghiên cứu (đề tài ở trạng thái Nháp)
+  async createGroup(dto: CreateTopicDto, lecturerId: string) {
+    const lecturer = await this.prisma.user.findUnique({ where: { id: lecturerId } });
+    if (lecturer?.role !== UserRole.Lecturer && lecturer?.role !== UserRole.Admin) {
+      throw new ForbiddenException('Chỉ giảng viên (GVHD) mới được tạo nhóm nghiên cứu');
+    }
+    const { durationMonths, ...rest } = dto;
+    const created = await this.prisma.topic.create({
+      data: {
+        ...rest,
+        durationMonths,
+        isAssigned: false,
+        isApproved: false,
+        status: TopicStatus.Draft,
+        submitterId: lecturerId,
+        deadline: new Date(dto.deadline),
+      },
+    });
+    // GVHD là người hướng dẫn (Supervisor)
+    await this.prisma.topicParticipant.create({
+      data: { topicId: created.id, userId: lecturerId, topicParticipantRole: TopicParticipantRole.Supervisor },
+    });
+    await this.activities.log(lecturerId, 'Tạo nhóm nghiên cứu', `"${dto.topicName}"`, created.id);
+    return created;
+  }
+
+  // FR-07: GVHD mời sinh viên theo MSSV
+  async inviteStudent(topicId: string, mssv: string, lecturerId: string) {
+    const topic = await this.assertSupervisor(topicId, lecturerId);
+    if (!mssv) throw new BadRequestException('Thiếu MSSV');
+    const student = await this.prisma.user.findUnique({ where: { userId: mssv } });
+    if (!student) throw new NotFoundException(`Không tìm thấy sinh viên có MSSV ${mssv}`);
+    if (student.role !== UserRole.Student) throw new BadRequestException('Chỉ mời được tài khoản sinh viên');
+
+    const exists = topic.topicParticipant.find(p => p.userId === student.id);
+    if (exists) throw new ForbiddenException('Sinh viên này đã ở trong nhóm hoặc đã được mời');
+
+    // Mỗi SV chỉ theo 1 đề tài
+    const active = await this.findStudentActiveTopic(student.id, topicId);
+    if (active) {
+      throw new ForbiddenException(`${student.fullName} đang ở đề tài "${active.topicName}" nên không thể mời`);
+    }
+
+    const created = await this.prisma.topicParticipant.create({
+      data: { topicId, userId: student.id, topicParticipantRole: TopicParticipantRole.Invited },
+    });
+    await this.notifications.create(
+      student.id,
+      'Lời mời tham gia nhóm nghiên cứu',
+      `GVHD mời bạn tham gia đề tài "${topic.topicName}"`,
+      `/de-tai-cua-toi`,
+      'group_invite',
+      { topicId, topicName: topic.topicName },
+    );
+    await this.activities.log(lecturerId, 'Mời SV vào nhóm', `${student.fullName} → "${topic.topicName}"`, topicId);
+    return created;
+  }
+
+  // GVHD gỡ 1 SV (đã mời hoặc là thành viên) khỏi nhóm
+  async removeInvite(topicId: string, userId: string, lecturerId: string) {
+    await this.assertSupervisor(topicId, lecturerId);
+    await this.prisma.topicParticipant.deleteMany({
+      where: {
+        topicId,
+        userId,
+        topicParticipantRole: { in: [TopicParticipantRole.Invited, TopicParticipantRole.Member] },
+      },
+    });
+    return { success: true };
+  }
+
+  // FR-08: SV chấp nhận / từ chối lời mời
+  async respondInvite(topicId: string, userId: string, accept: boolean) {
+    if (typeof accept !== 'boolean') throw new BadRequestException('Thiếu hành động chấp nhận/từ chối');
+    const inv = await this.prisma.topicParticipant.findUnique({
+      where: { topicId_userId: { topicId, userId } },
+    });
+    if (!inv || inv.topicParticipantRole !== TopicParticipantRole.Invited) {
+      throw new NotFoundException('Không có lời mời tham gia nào cho bạn ở đề tài này');
+    }
+    const topic = await this.prisma.topic.findUnique({
+      where: { id: topicId },
+      include: { topicParticipant: true },
+    });
+    if (!topic) throw new NotFoundException('Không tìm thấy đề tài');
+    const me = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (accept) {
+      // Mỗi SV chỉ theo 1 đề tài (trừ chính đề tài này)
+      const active = await this.findStudentActiveTopic(userId, topicId);
+      if (active) throw new ForbiddenException(`Bạn đang ở đề tài "${active.topicName}"`);
+
+      // SV đầu tiên chấp nhận → Chủ nhiệm (Leader); còn lại → Member
+      const hasLeader = topic.topicParticipant.some(p => p.topicParticipantRole === TopicParticipantRole.Leader);
+      const newRole = hasLeader ? TopicParticipantRole.Member : TopicParticipantRole.Leader;
+      await this.prisma.topicParticipant.update({
+        where: { id: inv.id },
+        data: { topicParticipantRole: newRole },
+      });
+      // Báo GVHD
+      const supervisor = topic.topicParticipant.find(p => p.topicParticipantRole === TopicParticipantRole.Supervisor);
+      if (supervisor?.userId) {
+        await this.notifications.create(
+          supervisor.userId,
+          'Sinh viên đã tham gia nhóm',
+          `${me?.fullName || 'Sinh viên'} đã chấp nhận tham gia đề tài "${topic.topicName}"`,
+          `/de-tai-cua-toi/${topicId}`,
+        );
+      }
+      await this.activities.log(userId, 'Chấp nhận vào nhóm', `"${topic.topicName}"`, topicId);
+      return { accepted: true, role: newRole };
+    } else {
+      await this.prisma.topicParticipant.delete({ where: { id: inv.id } });
+      const supervisor = topic.topicParticipant.find(p => p.topicParticipantRole === TopicParticipantRole.Supervisor);
+      if (supervisor?.userId) {
+        await this.notifications.create(
+          supervisor.userId,
+          'Sinh viên từ chối lời mời',
+          `${me?.fullName || 'Sinh viên'} đã từ chối tham gia đề tài "${topic.topicName}"`,
+        );
+      }
+      return { accepted: false };
+    }
+  }
+
+  // FR-10/11: Nhóm soạn/nộp thuyết minh → tạo 1 phiên bản mới
+  async saveProposal(topicId: string, content: any, note: string | undefined, userId: string) {
+    const topic = await this.prisma.topic.findUnique({
+      where: { id: topicId },
+      include: { topicParticipant: true },
+    });
+    if (!topic) throw new NotFoundException('Không tìm thấy đề tài');
+    const me = topic.topicParticipant.find(p => p.userId === userId);
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const isGroupMember = me && this.GROUP_ROLES.includes(me.topicParticipantRole);
+    if (!isGroupMember && user?.role !== UserRole.Admin) {
+      throw new ForbiddenException('Chỉ thành viên nhóm mới được soạn thuyết minh');
+    }
+    const last = await this.prisma.proposalVersion.findFirst({
+      where: { topicId },
+      orderBy: { version: 'desc' },
+    });
+    const version = (last?.version || 0) + 1;
+    const pv = await this.prisma.proposalVersion.create({
+      data: { topicId, version, content: content ?? {}, submittedById: userId, note },
+    });
+    await this.prisma.topic.update({
+      where: { id: topicId },
+      data: { currentProposalVersion: version },
+    });
+    await this.activities.log(userId, 'Lưu thuyết minh', `"${topic.topicName}" (v${version})`, topicId);
+    return pv;
+  }
+
+  async getProposalVersions(topicId: string) {
+    return this.prisma.proposalVersion.findMany({
+      where: { topicId },
+      orderBy: { version: 'desc' },
+    });
+  }
+
+  // Nhóm nộp hồ sơ lên cấp duyệt kế tiếp (GVHD trình Khoa / nộp lại sau khi bị trả).
+  async submitForReview(topicId: string, userId: string) {
+    const topic = await this.prisma.topic.findUnique({
+      where: { id: topicId },
+      include: { topicParticipant: true },
+    });
+    if (!topic) throw new NotFoundException('Không tìm thấy đề tài');
+    const me = topic.topicParticipant.find(p => p.userId === userId);
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const canSubmit =
+      me?.topicParticipantRole === TopicParticipantRole.Supervisor ||
+      me?.topicParticipantRole === TopicParticipantRole.Leader ||
+      user?.role === UserRole.Admin;
+    if (!canSubmit) {
+      throw new ForbiddenException('Chỉ GVHD hoặc chủ nhiệm đề tài mới được nộp hồ sơ');
+    }
+    if (!topic.currentProposalVersion) {
+      throw new BadRequestException('Cần soạn thuyết minh trước khi nộp');
+    }
+
+    // Xác định trạng thái đích theo trạng thái hiện tại
+    let next: TopicStatus;
+    if (topic.status === TopicStatus.Draft || topic.status === TopicStatus.FacultyRevision) {
+      next = TopicStatus.PendingFacultyReview; // trình / nộp lại cho Khoa
+    } else if (topic.status === TopicStatus.DepartmentRevision) {
+      next = TopicStatus.PendingDepartmentReview; // nộp lại cho Phòng
+    } else {
+      throw new BadRequestException('Đề tài không ở trạng thái có thể nộp duyệt');
+    }
+
+    // Rời Nháp = GVHD duyệt sơ bộ (ghi 1 bản ghi cấp Supervisor)
+    if (topic.status === TopicStatus.Draft) {
+      await this.prisma.approvalRecord.create({
+        data: { topicId, level: ApprovalLevel.Supervisor, decision: ApprovalDecision.Approved, comment: 'GVHD duyệt sơ bộ & trình Khoa', reviewerId: userId },
+      });
+    }
+
+    const updated = await this.prisma.topic.update({ where: { id: topicId }, data: { status: next } });
+    await this.notifyGroup(topicId, 'Đã nộp hồ sơ duyệt', `Đề tài "${topic.topicName}" đã được nộp lên cấp duyệt.`, `/de-tai-cua-toi/${topicId}`);
+    await this.activities.log(userId, 'Nộp hồ sơ duyệt', `"${topic.topicName}" → ${next}`, topicId);
+    return updated;
+  }
+
+  // FR-13/14/15/16: Cán bộ Khoa/Phòng duyệt Đạt/Không đạt (kèm nhận xét)
+  async review(topicId: string, reviewerId: string, decision: ApprovalDecision, comment?: string) {
+    if (decision !== ApprovalDecision.Approved && decision !== ApprovalDecision.Rejected) {
+      throw new BadRequestException('Quyết định duyệt không hợp lệ');
+    }
+    const topic = await this.prisma.topic.findUnique({ where: { id: topicId } });
+    if (!topic) throw new NotFoundException('Không tìm thấy đề tài');
+    const reviewer = await this.prisma.user.findUnique({ where: { id: reviewerId } });
+    const isAdmin = reviewer?.role === UserRole.Admin;
+
+    let level: ApprovalLevel;
+    let next: TopicStatus;
+    if (topic.status === TopicStatus.PendingFacultyReview) {
+      if (reviewer?.role !== UserRole.FacultyOfficer && !isAdmin) {
+        throw new ForbiddenException('Chỉ Cán bộ NCKH Khoa mới được duyệt ở bước này');
+      }
+      level = ApprovalLevel.Faculty;
+      next = decision === ApprovalDecision.Approved ? TopicStatus.PendingDepartmentReview : TopicStatus.FacultyRevision;
+    } else if (topic.status === TopicStatus.PendingDepartmentReview) {
+      if (reviewer?.role !== UserRole.DepartmentOfficer && !isAdmin) {
+        throw new ForbiddenException('Chỉ Cán bộ Phòng NCKH mới được duyệt ở bước này');
+      }
+      level = ApprovalLevel.Department;
+      next = decision === ApprovalDecision.Approved ? TopicStatus.PendingProposalCouncil : TopicStatus.DepartmentRevision;
+    } else {
+      throw new BadRequestException('Đề tài không ở trạng thái chờ duyệt');
+    }
+
+    if (decision === ApprovalDecision.Rejected && !comment) {
+      throw new BadRequestException('Cần nhập nhận xét khi trả về chỉnh sửa');
+    }
+
+    await this.prisma.approvalRecord.create({
+      data: { topicId, level, decision, comment, reviewerId },
+    });
+    const updated = await this.prisma.topic.update({ where: { id: topicId }, data: { status: next } });
+
+    const levelLabel = level === ApprovalLevel.Faculty ? 'Cán bộ NCKH Khoa' : 'Cán bộ Phòng NCKH';
+    const verdict = decision === ApprovalDecision.Approved ? 'ĐẠT' : 'trả về chỉnh sửa';
+    await this.notifyGroup(
+      topicId,
+      `Kết quả duyệt (${levelLabel})`,
+      `${levelLabel} đã duyệt đề tài "${topic.topicName}": ${verdict}.` + (comment ? ` Nhận xét: ${comment}` : ''),
+      `/de-tai-cua-toi/${topicId}`,
+    );
+    await this.activities.log(reviewerId, `Duyệt cấp ${levelLabel}`, `"${topic.topicName}": ${verdict}`, topicId);
+    return updated;
+  }
+
+  async getApprovals(topicId: string) {
+    const records = await this.prisma.approvalRecord.findMany({
+      where: { topicId },
+      orderBy: { created: 'desc' },
+    });
+    const reviewerIds = [...new Set(records.map(r => r.reviewerId).filter(Boolean))] as string[];
+    const reviewers = await this.prisma.user.findMany({
+      where: { id: { in: reviewerIds } },
+      select: { id: true, fullName: true, role: true },
+    });
+    const byId = Object.fromEntries(reviewers.map(u => [u.id, u]));
+    return records.map(r => ({ ...r, reviewer: r.reviewerId ? byId[r.reviewerId] || null : null }));
+  }
+
+  // Hàng chờ duyệt theo vai trò người gọi
+  async getReviewQueue(user: any) {
+    let status: TopicStatus;
+    if (user.role === UserRole.FacultyOfficer) status = TopicStatus.PendingFacultyReview;
+    else if (user.role === UserRole.DepartmentOfficer) status = TopicStatus.PendingDepartmentReview;
+    else if (user.role === UserRole.Admin) {
+      // Admin xem cả 2 cấp đang chờ
+      const topics = await this.prisma.topic.findMany({
+        where: { status: { in: [TopicStatus.PendingFacultyReview, TopicStatus.PendingDepartmentReview] } },
+        include: this.SRS_INCLUDE,
+        orderBy: { id: 'desc' },
+      });
+      return this.decorateTopics(topics);
+    } else {
+      throw new ForbiddenException('Bạn không có quyền xem hàng chờ duyệt');
+    }
+    const topics = await this.prisma.topic.findMany({
+      where: { status },
+      include: this.SRS_INCLUDE,
+      orderBy: { id: 'desc' },
+    });
+    return this.decorateTopics(topics);
   }
 
   // Lazy: với danh sách đề tài, tự chuyển Editing đã hết hạn → Done,

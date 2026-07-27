@@ -9,7 +9,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Public } from '../auth/public.decorator';
-import { TopicStatus, UserRole } from '@prisma/client';
+import { TopicStatus, UserRole, ApprovalDecision } from '@prisma/client';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -192,5 +192,83 @@ export class TopicsController {
     @Request() req,
   ) {
     return this.topicsService.respondAssign(id, userId, accept, req.user);
+  }
+
+  // ===== LUỒNG SRS: NHÓM (GVHD) → HỒ SƠ → DUYỆT NHIỀU CẤP =====
+
+  // GET /api/review-queue — hàng chờ duyệt theo vai trò (Khoa/Phòng/Admin)
+  @Get('review-queue')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.FacultyOfficer, UserRole.DepartmentOfficer, UserRole.Admin)
+  reviewQueue(@Request() req) {
+    return this.topicsService.getReviewQueue(req.user);
+  }
+
+  // POST /api/topics/group — GVHD tạo nhóm nghiên cứu (đề tài Nháp)
+  @Post('topics/group')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.Lecturer, UserRole.Admin)
+  createGroup(@Body() dto: CreateTopicDto, @Request() req) {
+    return this.topicsService.createGroup(dto, req.user.id);
+  }
+
+  // POST /api/topics/:id/invite — GVHD mời SV theo MSSV
+  @Post('topics/:id/invite')
+  inviteStudent(@Param('id') id: string, @Body('mssv') mssv: string, @Request() req) {
+    return this.topicsService.inviteStudent(id, mssv, req.user.id);
+  }
+
+  // DELETE /api/topics/:id/invite/:userId — GVHD gỡ SV khỏi nhóm
+  @Delete('topics/:id/invite/:userId')
+  removeInvite(@Param('id') id: string, @Param('userId') userId: string, @Request() req) {
+    return this.topicsService.removeInvite(id, userId, req.user.id);
+  }
+
+  // PATCH /api/topics/:id/respond-invite — SV chấp nhận/từ chối lời mời
+  @Patch('topics/:id/respond-invite')
+  respondInvite(@Param('id') id: string, @Body('accept') accept: boolean, @Request() req) {
+    return this.topicsService.respondInvite(id, req.user.id, accept);
+  }
+
+  // PATCH /api/topics/:id/proposal — lưu/nộp 1 phiên bản thuyết minh
+  @Patch('topics/:id/proposal')
+  saveProposal(
+    @Param('id') id: string,
+    @Body('content') content: any,
+    @Body('note') note: string,
+    @Request() req,
+  ) {
+    return this.topicsService.saveProposal(id, content, note, req.user.id);
+  }
+
+  // GET /api/topics/:id/proposal/versions — lịch sử phiên bản thuyết minh
+  @Get('topics/:id/proposal/versions')
+  proposalVersions(@Param('id') id: string) {
+    return this.topicsService.getProposalVersions(id);
+  }
+
+  // PATCH /api/topics/:id/submit — nhóm nộp hồ sơ lên cấp duyệt kế tiếp
+  @Patch('topics/:id/submit')
+  submitForReview(@Param('id') id: string, @Request() req) {
+    return this.topicsService.submitForReview(id, req.user.id);
+  }
+
+  // PATCH /api/topics/:id/review — Cán bộ Khoa/Phòng duyệt Đạt/Không đạt
+  @Patch('topics/:id/review')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.FacultyOfficer, UserRole.DepartmentOfficer, UserRole.Admin)
+  review(
+    @Param('id') id: string,
+    @Body('decision') decision: ApprovalDecision,
+    @Body('comment') comment: string,
+    @Request() req,
+  ) {
+    return this.topicsService.review(id, req.user.id, decision, comment);
+  }
+
+  // GET /api/topics/:id/approvals — lịch sử duyệt của đề tài
+  @Get('topics/:id/approvals')
+  approvals(@Param('id') id: string) {
+    return this.topicsService.getApprovals(id);
   }
 }

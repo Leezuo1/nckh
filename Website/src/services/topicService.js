@@ -111,6 +111,58 @@ const topicService = {
   scheduleStart(ids, startDate, endDate) {
     return api.patch('/topics/schedule-start', { ids, startDate, endDate });
   },
+
+  // ===== LUỒNG SRS: NHÓM (GVHD) → HỒ SƠ → DUYỆT NHIỀU CẤP =====
+
+  // GVHD tạo nhóm nghiên cứu (đề tài Nháp)
+  createGroup(data) {
+    return api.post('/topics/group', data);
+  },
+
+  // GVHD mời SV theo MSSV
+  inviteStudent(topicId, mssv) {
+    return api.post(`/topics/${topicId}/invite`, { mssv });
+  },
+
+  // GVHD gỡ SV khỏi nhóm
+  removeInvite(topicId, userId) {
+    return api.delete(`/topics/${topicId}/invite/${userId}`);
+  },
+
+  // SV chấp nhận/từ chối lời mời
+  respondInvite(topicId, accept) {
+    return api.patch(`/topics/${topicId}/respond-invite`, { accept });
+  },
+
+  // Lưu/nộp 1 phiên bản thuyết minh (content: object các mục biểu mẫu)
+  saveProposal(topicId, content, note) {
+    return api.patch(`/topics/${topicId}/proposal`, { content, note });
+  },
+
+  // Lịch sử phiên bản thuyết minh
+  getProposalVersions(topicId) {
+    return api.get(`/topics/${topicId}/proposal/versions`);
+  },
+
+  // Nhóm nộp hồ sơ lên cấp duyệt kế tiếp
+  submitForReview(topicId) {
+    return api.patch(`/topics/${topicId}/submit`);
+  },
+
+  // Cán bộ Khoa/Phòng duyệt Đạt/Không đạt (decision: 'Approved' | 'Rejected')
+  review(topicId, decision, comment) {
+    return api.patch(`/topics/${topicId}/review`, { decision, comment });
+  },
+
+  // Lịch sử duyệt của đề tài
+  getApprovals(topicId) {
+    return api.get(`/topics/${topicId}/approvals`);
+  },
+
+  // Hàng chờ duyệt theo vai trò (Khoa/Phòng/Admin)
+  getReviewQueue() {
+    return api.get('/review-queue');
+  },
 };
 
 export default topicService;

@@ -22,17 +22,20 @@ const Sidebar = ({ isOpen, onClose }) => {
     () => localStorage.getItem('is_logged_in') === 'true'
   );
 
-  const [isAdmin, setIsAdmin] = useState(() => {
-    const userInfo = JSON.parse(localStorage.getItem('user_info') || 'null');
-    return userInfo?.role === 'Admin';
-  });
+  const readRole = () => {
+    try { return JSON.parse(localStorage.getItem('user_info') || 'null')?.role || null; } catch { return null; }
+  };
+  const [role, setRole] = useState(readRole);
+  const isAdmin = role === 'Admin';
+  const isLecturer = role === 'Lecturer';
+  const isOfficer = role === 'FacultyOfficer' || role === 'DepartmentOfficer';
+  const isStudent = role === 'Student';
 
   useEffect(() => {
     const syncAuth = () => {
       const loggedIn = localStorage.getItem('is_logged_in') === 'true';
       setIsLoggedIn(loggedIn);
-      const userInfo = JSON.parse(localStorage.getItem('user_info') || 'null');
-      setIsAdmin(userInfo?.role === 'Admin');
+      setRole(readRole());
     };
 
     window.addEventListener('auth:login', syncAuth);
@@ -100,6 +103,26 @@ const Sidebar = ({ isOpen, onClose }) => {
               <div className="icon-wrap"><img src={iconMyTopic} className="icon" alt="folder" /></div>
               <span className="btn-label">{t('sidebar.myTopics')}</span>
             </button>
+
+            {/* ===== Điều hướng theo vai trò (luồng SRS) ===== */}
+            {isStudent && (
+              <button className={`menu-btn sub ${getActiveClass('/loi-moi')}`} onClick={() => go('/loi-moi', true)}>
+                <div className="icon-wrap"><img src={iconRegister} className="icon" alt="invite" /></div>
+                <span className="btn-label">Lời mời tham gia</span>
+              </button>
+            )}
+            {(isLecturer || isAdmin) && (
+              <button className={`menu-btn sub ${getActiveClass('/gvhd/nhom')}`} onClick={() => go('/gvhd/nhom', true)}>
+                <div className="icon-wrap"><img src={iconMyTopic} className="icon" alt="group" /></div>
+                <span className="btn-label">Nhóm nghiên cứu</span>
+              </button>
+            )}
+            {(isOfficer || isAdmin) && (
+              <button className={`menu-btn sub ${getActiveClass('/duyet')}`} onClick={() => go('/duyet', true)}>
+                <div className="icon-wrap"><img src={iconList} className="icon" alt="review" /></div>
+                <span className="btn-label">Hàng chờ duyệt</span>
+              </button>
+            )}
           </div>
         )}
       </nav>
