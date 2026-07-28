@@ -29,7 +29,8 @@ enum TopicStatus {
   FacultyRevision         // 3. Khoa yêu cầu chỉnh sửa
   PendingDepartmentReview // 4. Chờ Cán bộ Phòng NCKH duyệt
   DepartmentRevision      // 5. Phòng yêu cầu chỉnh sửa
-  PendingProposalCouncil  // 6. Chờ Hội đồng đề cương (bàn giao cho pha Hội đồng)
+  PendingProposalCouncil  // 6. Chờ Hội đồng đề cương
+  PendingReviewCouncil    // 8. Chờ Hội đồng phản biện / nghiệm thu
   // ===== Vòng đời thực hiện (đã có) =====
   WaitingToStart // Chờ bắt đầu (sau khi duyệt assign)
   InProgress
@@ -53,6 +54,15 @@ enum ApprovalLevel {
 enum ApprovalDecision {
   Approved
   Rejected
+}
+enum CouncilType {
+  Proposal // Hội đồng đề cương
+  Review   // Hội đồng phản biện / nghiệm thu
+}
+enum ReviewOutcome {
+  Extend // Gia hạn
+  Redo   // Làm lại đề cương
+  Cancel // Huỷ đề tài
 }
 enum AcademicDegree {
   Master
@@ -105,6 +115,7 @@ model Topic {
   teamMembersInfo Json? // Danh sách SV điền lúc xin assign (kể cả MSSV không khớp DB)
   progressHistory Json? // Lịch sử tiến độ: [{ date, value }]
   currentProposalVersion Int? // Phiên bản thuyết minh mới nhất (luồng SRS)
+  batchId String? @db.ObjectId // Đợt đề tài (FR-04), raw ObjectId
   submitter User? @relation("Submitter", fields: [submitterId], references: [id])
   topicParticipant TopicParticipant[]
   documents Document[]
@@ -112,6 +123,7 @@ model Topic {
   activities Activity[]
   proposalVersions ProposalVersion[]
   approvalRecords ApprovalRecord[]
+  councils Council[]
 }
 
 // Lịch sử phiên bản hồ sơ thuyết minh (FR-11)
@@ -134,6 +146,23 @@ model ApprovalRecord {
   decision ApprovalDecision
   comment String?
   reviewerId String? @db.ObjectId // raw ObjectId, resolve tên thủ công khi hiển thị
+  created DateTime @default(now())
+  topic Topic @relation(fields: [topicId], references: [id])
+}
+
+// Hội đồng đề cương / phản biện (FR-17→20).
+// Thành viên hội đồng KHÔNG có tài khoản — Cán bộ Phòng nhập kết quả hộ.
+model Council {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  topicId String @db.ObjectId
+  type CouncilType
+  members Json? // danh sách tên thành viên hội đồng (chuỗi)
+  scheduledAt DateTime? // thời gian họp
+  location String?
+  decision ApprovalDecision? // kết quả: Đạt / Không đạt (nhập sau khi họp)
+  note String?
+  outcome ReviewOutcome? // khi Hội đồng phản biện Không đạt: Gia hạn / Làm lại / Huỷ
+  createdById String? @db.ObjectId
   created DateTime @default(now())
   topic Topic @relation(fields: [topicId], references: [id])
 }
@@ -179,6 +208,18 @@ model Activity {
   created DateTime @default(now())
   user User? @relation(fields: [userId], references: [id])
   topic Topic? @relation(fields: [topicId], references: [id])
+}
+
+// Đợt đề tài (FR-04→06) — Cán bộ Phòng phát động
+model Batch {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  year String
+  description String?
+  deadline DateTime // hạn nộp hồ sơ của đợt
+  isOpen Boolean @default(true)
+  createdById String? @db.ObjectId
+  created DateTime @default(now())
 }
 
 model TopicAccess {

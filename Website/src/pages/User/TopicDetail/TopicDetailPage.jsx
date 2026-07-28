@@ -151,6 +151,27 @@ const TopicDetailPage = () => {
     } catch (err) { /* toast tự hiện */ }
   }
 
+  // FR-12: Xuất thuyết minh ra file Word (.doc) — không cần thư viện ngoài
+  const handleExportWord = () => {
+    const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    const rows = PROPOSAL_FIELDS.map(f => `<h3>${f.label}</h3><p>${esc(srsProposal[f.key]).replace(/\n/g, '<br/>') || '(chưa nhập)'}</p>`).join('')
+    const members = (topic.topicParticipant || []).map(p => `<li>${esc(p.user?.fullName)} (${esc(p.user?.userId)}) — ${mapUserRole(p.topicParticipantRole)}</li>`).join('')
+    const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><title>Thuyết minh</title></head><body style="font-family:Times New Roman,serif">
+      <h1 style="text-align:center">THUYẾT MINH ĐỀ TÀI NCKH</h1>
+      <p><b>Tên đề tài:</b> ${esc(topic.topicName)}</p>
+      <p><b>Mã đề tài:</b> ${esc(topic.topicId)} &nbsp; <b>Năm:</b> ${esc(topic.year)}</p>
+      <p><b>Thành viên nhóm:</b></p><ul>${members}</ul>
+      ${rows}
+    </body></html>`
+    const blob = new Blob(['﻿', html], { type: 'application/msword' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `ThuyetMinh_${topic.topicId || 'de-tai'}.doc`
+    document.body.appendChild(a); a.click(); a.remove()
+    URL.revokeObjectURL(url)
+  }
+
   useEffect(() => {
     const fetchTopic = async () => {
       try {
@@ -366,8 +387,9 @@ const TopicDetailPage = () => {
                     style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, minHeight: 56, resize: 'vertical', boxSizing: 'border-box' }} />
                 </div>
               ))}
-              <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <button onClick={handleSaveProposal} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#e5e7eb', color: '#111' }}>Lưu thuyết minh</button>
+                <button onClick={handleExportWord} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#e0f2fe', color: '#075985' }}>⬇ Xuất Word</button>
                 {canSubmitProposal && (
                   <button onClick={handleSubmitProposal} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#16a34a', color: '#fff' }}>
                     {topic.status === 'Draft' ? 'Duyệt sơ bộ & trình Khoa' : 'Nộp lại'}

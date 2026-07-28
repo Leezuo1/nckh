@@ -9,7 +9,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Public } from '../auth/public.decorator';
-import { TopicStatus, UserRole, ApprovalDecision } from '@prisma/client';
+import { TopicStatus, UserRole, ApprovalDecision, ReviewOutcome } from '@prisma/client';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -270,5 +270,72 @@ export class TopicsController {
   @Get('topics/:id/approvals')
   approvals(@Param('id') id: string) {
     return this.topicsService.getApprovals(id);
+  }
+
+  // ===== HỘI ĐỒNG (Cán bộ Phòng nhập kết quả) =====
+
+  // PATCH /api/topics/:id/council/proposal — nhập kết quả Hội đồng đề cương
+  @Patch('topics/:id/council/proposal')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.DepartmentOfficer, UserRole.Admin)
+  councilProposal(
+    @Param('id') id: string,
+    @Body() body: { decision: ApprovalDecision; note?: string; members?: any; scheduledAt?: string; location?: string },
+    @Request() req,
+  ) {
+    return this.topicsService.recordProposalCouncil(id, body, req.user.id);
+  }
+
+  // PATCH /api/topics/:id/council/review — nhập kết quả Hội đồng phản biện / nghiệm thu
+  @Patch('topics/:id/council/review')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.DepartmentOfficer, UserRole.Admin)
+  councilReview(
+    @Param('id') id: string,
+    @Body() body: { decision: ApprovalDecision; outcome?: ReviewOutcome; note?: string; members?: any; scheduledAt?: string; location?: string },
+    @Request() req,
+  ) {
+    return this.topicsService.recordReviewCouncil(id, body, req.user.id);
+  }
+
+  // GET /api/topics/:id/councils — lịch sử hội đồng
+  @Get('topics/:id/councils')
+  councils(@Param('id') id: string) {
+    return this.topicsService.getCouncils(id);
+  }
+
+  // ===== ĐỢT ĐỀ TÀI (FR-04→06) =====
+
+  // GET /api/batches — danh sách đợt (GVHD chọn khi lập nhóm; Phòng quản lý)
+  @Get('batches')
+  listBatches() {
+    return this.topicsService.getBatches();
+  }
+
+  // POST /api/batches — Cán bộ Phòng tạo đợt đề tài
+  @Post('batches')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.DepartmentOfficer, UserRole.Admin)
+  createBatch(
+    @Body() body: { name: string; year: string; description?: string; deadline: string },
+    @Request() req,
+  ) {
+    return this.topicsService.createBatch(body, req.user.id);
+  }
+
+  // PATCH /api/batches/:id/toggle — đóng/mở đợt
+  @Patch('batches/:id/toggle')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.DepartmentOfficer, UserRole.Admin)
+  toggleBatch(@Param('id') id: string, @Request() req) {
+    return this.topicsService.toggleBatch(id, req.user.id);
+  }
+
+  // GET /api/report-stats — báo cáo thống kê (Khoa/Phòng/Trưởng Khoa/Admin)
+  @Get('report-stats')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.FacultyOfficer, UserRole.DepartmentOfficer, UserRole.FacultyDean, UserRole.Admin)
+  reportStats() {
+    return this.topicsService.getReportStats();
   }
 }

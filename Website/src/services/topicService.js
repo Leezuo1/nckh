@@ -163,6 +163,38 @@ const topicService = {
   getReviewQueue() {
     return api.get('/review-queue');
   },
+
+  // Cán bộ Phòng: nhập kết quả Hội đồng đề cương (decision: 'Approved'|'Rejected')
+  councilProposal(topicId, decision, note) {
+    return api.patch(`/topics/${topicId}/council/proposal`, { decision, note });
+  },
+
+  // Cán bộ Phòng: nhập kết quả Hội đồng phản biện/nghiệm thu
+  // outcome (khi Rejected): 'Extend' | 'Redo' | 'Cancel'
+  councilReview(topicId, decision, outcome, note) {
+    return api.patch(`/topics/${topicId}/council/review`, { decision, outcome, note });
+  },
+
+  // Lịch sử hội đồng
+  getCouncils(topicId) {
+    return api.get(`/topics/${topicId}/councils`);
+  },
+
+  // ===== ĐỢT ĐỀ TÀI =====
+  getBatches() {
+    return api.get('/batches');
+  },
+  createBatch(data) {
+    return api.post('/batches', data);
+  },
+  toggleBatch(id) {
+    return api.patch(`/batches/${id}/toggle`);
+  },
+
+  // Báo cáo thống kê (Khoa/Phòng/Trưởng Khoa/Admin)
+  getReportStats() {
+    return api.get('/report-stats');
+  },
 };
 
 export default topicService;

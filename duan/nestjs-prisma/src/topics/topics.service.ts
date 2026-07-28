@@ -4,7 +4,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { ActivitiesService } from '../activities/activities.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
-import { TopicStatus, UserRole, TopicParticipantRole, ApprovalLevel, ApprovalDecision } from '@prisma/client';
+import { TopicStatus, UserRole, TopicParticipantRole, ApprovalLevel, ApprovalDecision, CouncilType, ReviewOutcome } from '@prisma/client';
 
 @Injectable()
 export class TopicsService {
@@ -191,6 +191,7 @@ export class TopicsService {
         },
         proposalVersions: { orderBy: { version: 'desc' } },
         approvalRecords: { orderBy: { created: 'desc' } },
+        councils: { orderBy: { created: 'desc' } },
       },
     });
 
@@ -655,6 +656,7 @@ export class TopicsService {
     await this.prisma.topicAccess.deleteMany({ where: { topicId: id } });
     await this.prisma.proposalVersion.deleteMany({ where: { topicId: id } });
     await this.prisma.approvalRecord.deleteMany({ where: { topicId: id } });
+    await this.prisma.council.deleteMany({ where: { topicId: id } });
     return this.prisma.topic.delete({ where: { id } });
   }
 
@@ -1206,28 +1208,205 @@ export class TopicsService {
     return records.map(r => ({ ...r, reviewer: r.reviewerId ? byId[r.reviewerId] || null : null }));
   }
 
+  // Việc Cán bộ Phòng phụ trách: duyệt hồ sơ cấp Phòng + Hội đồng đề cương/phản biện + nghiệm thu
+  private readonly DEPARTMENT_QUEUE: TopicStatus[] = [
+    TopicStatus.PendingDepartmentReview,
+    TopicStatus.PendingProposalCouncil,
+    TopicStatus.PendingReviewCouncil,
+    TopicStatus.InProgress,
+    TopicStatus.Reporting,
+    TopicStatus.Editing,
+  ];
+
   // Hàng chờ duyệt theo vai trò người gọi
   async getReviewQueue(user: any) {
-    let status: TopicStatus;
-    if (user.role === UserRole.FacultyOfficer) status = TopicStatus.PendingFacultyReview;
-    else if (user.role === UserRole.DepartmentOfficer) status = TopicStatus.PendingDepartmentReview;
-    else if (user.role === UserRole.Admin) {
-      // Admin xem cả 2 cấp đang chờ
-      const topics = await this.prisma.topic.findMany({
-        where: { status: { in: [TopicStatus.PendingFacultyReview, TopicStatus.PendingDepartmentReview] } },
-        include: this.SRS_INCLUDE,
-        orderBy: { id: 'desc' },
-      });
-      return this.decorateTopics(topics);
+    let statuses: TopicStatus[];
+    if (user.role === UserRole.FacultyOfficer) {
+      statuses = [TopicStatus.PendingFacultyReview];
+    } else if (user.role === UserRole.DepartmentOfficer) {
+      statuses = this.DEPARTMENT_QUEUE;
+    } else if (user.role === UserRole.Admin) {
+      statuses = [TopicStatus.PendingFacultyReview, ...this.DEPARTMENT_QUEUE];
     } else {
       throw new ForbiddenException('Bạn không có quyền xem hàng chờ duyệt');
     }
     const topics = await this.prisma.topic.findMany({
-      where: { status },
+      where: { status: { in: statuses } },
       include: this.SRS_INCLUDE,
       orderBy: { id: 'desc' },
     });
     return this.decorateTopics(topics);
+  }
+
+  // ===== HỘI ĐỒNG (FR-17→20) — Cán bộ Phòng nhập kết quả =====
+
+  private async assertDepartmentOfficer(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (user?.role !== UserRole.DepartmentOfficer && user?.role !== UserRole.Admin) {
+      throw new ForbiddenException('Chỉ Cán bộ Phòng NCKH mới được thao tác Hội đồng');
+    }
+  }
+
+  // Nhập kết quả Hội đồng ĐỀ CƯƠNG: Đạt → giao đề tài (thực hiện); Không đạt → làm lại đề cương
+  async recordProposalCouncil(
+    topicId: string,
+    body: { decision: ApprovalDecision; note?: string; members?: any; scheduledAt?: string; location?: string },
+    officerId: string,
+  ) {
+    await this.assertDepartmentOfficer(officerId);
+    const topic = await this.prisma.topic.findUnique({ where: { id: topicId } });
+    if (!topic) throw new NotFoundException('Không tìm thấy đề tài');
+    if (topic.status !== TopicStatus.PendingProposalCouncil) {
+      throw new BadRequestException('Đề tài không ở bước Hội đồng đề cương');
+    }
+
+    await this.prisma.council.create({
+      data: {
+        topicId, type: CouncilType.Proposal,
+        members: body.members ?? undefined,
+        scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
+        location: body.location, decision: body.decision, note: body.note, createdById: officerId,
+      },
+    });
+
+    let updated;
+    if (body.decision === ApprovalDecision.Approved) {
+      // Giao đề tài: bắt đầu thực hiện, deadline = hôm nay + durationMonths
+      const start = new Date();
+      const deadline = new Date(start);
+      deadline.setMonth(deadline.getMonth() + (topic.durationMonths || 6));
+      updated = await this.prisma.topic.update({
+        where: { id: topicId },
+        data: { status: TopicStatus.InProgress, isAssigned: true, startDate: start, deadline },
+      });
+      await this.notifyGroup(topicId, 'Đề tài được giao', `Hội đồng đề cương ĐẠT — đề tài "${topic.topicName}" bắt đầu thực hiện.`, `/de-tai-cua-toi/${topicId}`);
+    } else {
+      updated = await this.prisma.topic.update({ where: { id: topicId }, data: { status: TopicStatus.Draft } });
+      await this.notifyGroup(topicId, 'Hội đồng đề cương: làm lại', `Đề tài "${topic.topicName}" cần làm lại đề cương.` + (body.note ? ` Nhận xét: ${body.note}` : ''), `/de-tai-cua-toi/${topicId}`);
+    }
+    await this.activities.log(officerId, 'Nhập kết quả Hội đồng đề cương', `"${topic.topicName}": ${body.decision}`, topicId);
+    return updated;
+  }
+
+  // Nhập kết quả Hội đồng PHẢN BIỆN / nghiệm thu.
+  // Đạt → Nghiệm thu (Done). Không đạt → outcome: Gia hạn / Làm lại / Huỷ.
+  async recordReviewCouncil(
+    topicId: string,
+    body: { decision: ApprovalDecision; outcome?: ReviewOutcome; note?: string; members?: any; scheduledAt?: string; location?: string },
+    officerId: string,
+  ) {
+    await this.assertDepartmentOfficer(officerId);
+    const topic = await this.prisma.topic.findUnique({ where: { id: topicId } });
+    if (!topic) throw new NotFoundException('Không tìm thấy đề tài');
+    const allowed: TopicStatus[] = [TopicStatus.InProgress, TopicStatus.Reporting, TopicStatus.Editing, TopicStatus.PendingReviewCouncil];
+    if (!allowed.includes(topic.status)) {
+      throw new BadRequestException('Đề tài chưa ở giai đoạn nghiệm thu');
+    }
+    if (body.decision === ApprovalDecision.Rejected && !body.outcome) {
+      throw new BadRequestException('Không đạt: cần chọn Gia hạn / Làm lại / Huỷ');
+    }
+
+    await this.prisma.council.create({
+      data: {
+        topicId, type: CouncilType.Review,
+        members: body.members ?? undefined,
+        scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
+        location: body.location, decision: body.decision, note: body.note,
+        outcome: body.decision === ApprovalDecision.Rejected ? body.outcome : undefined,
+        createdById: officerId,
+      },
+    });
+
+    let data: any;
+    let msg: string;
+    if (body.decision === ApprovalDecision.Approved) {
+      data = { status: TopicStatus.Done };
+      msg = `Đề tài "${topic.topicName}" đã NGHIỆM THU.`;
+    } else if (body.outcome === ReviewOutcome.Extend) {
+      const deadline = new Date();
+      deadline.setMonth(deadline.getMonth() + (topic.durationMonths || 6));
+      data = { status: TopicStatus.InProgress, deadline };
+      msg = `Đề tài "${topic.topicName}" được GIA HẠN thực hiện.`;
+    } else if (body.outcome === ReviewOutcome.Redo) {
+      data = { status: TopicStatus.Draft };
+      msg = `Đề tài "${topic.topicName}" phải LÀM LẠI đề cương.`;
+    } else {
+      data = { status: TopicStatus.Cancelled };
+      msg = `Đề tài "${topic.topicName}" đã bị HUỶ.`;
+    }
+    const updated = await this.prisma.topic.update({ where: { id: topicId }, data });
+    await this.notifyGroup(topicId, 'Kết quả Hội đồng nghiệm thu', msg + (body.note ? ` Nhận xét: ${body.note}` : ''), `/de-tai-cua-toi/${topicId}`);
+    await this.activities.log(officerId, 'Nhập kết quả Hội đồng phản biện', `"${topic.topicName}": ${body.decision}${body.outcome ? '/' + body.outcome : ''}`, topicId);
+    return updated;
+  }
+
+  async getCouncils(topicId: string) {
+    return this.prisma.council.findMany({ where: { topicId }, orderBy: { created: 'desc' } });
+  }
+
+  // ===== ĐỢT ĐỀ TÀI (FR-04→06) — Cán bộ Phòng phát động =====
+
+  async createBatch(dto: { name: string; year: string; description?: string; deadline: string }, officerId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: officerId } });
+    if (user?.role !== UserRole.DepartmentOfficer && user?.role !== UserRole.Admin) {
+      throw new ForbiddenException('Chỉ Cán bộ Phòng NCKH mới được tạo đợt đề tài');
+    }
+    const batch = await this.prisma.batch.create({
+      data: { name: dto.name, year: dto.year, description: dto.description, deadline: new Date(dto.deadline), createdById: officerId },
+    });
+    // FR-05: thông báo tất cả GVHD khi có đợt mới
+    const lecturers = await this.prisma.user.findMany({
+      where: { role: UserRole.Lecturer, status: 'Active' }, select: { id: true },
+    });
+    for (const l of lecturers) {
+      await this.notifications.create(
+        l.id, 'Đợt đề tài mới',
+        `Phòng NCKH vừa mở đợt "${dto.name}". Hạn nộp hồ sơ: ${new Date(dto.deadline).toLocaleDateString('vi-VN')}.`,
+        `/dang-ky-y-tuong`,
+      );
+    }
+    return batch;
+  }
+
+  async getBatches() {
+    return this.prisma.batch.findMany({ orderBy: { created: 'desc' } });
+  }
+
+  async toggleBatch(id: string, officerId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: officerId } });
+    if (user?.role !== UserRole.DepartmentOfficer && user?.role !== UserRole.Admin) {
+      throw new ForbiddenException('Chỉ Cán bộ Phòng NCKH mới được đóng/mở đợt');
+    }
+    const batch = await this.prisma.batch.findUnique({ where: { id } });
+    if (!batch) throw new NotFoundException('Không tìm thấy đợt đề tài');
+    return this.prisma.batch.update({ where: { id }, data: { isOpen: !batch.isOpen } });
+  }
+
+  // ===== BÁO CÁO THỐNG KÊ (FR-26→28) =====
+  async getReportStats() {
+    const topics = await this.prisma.topic.findMany({
+      where: { status: { not: TopicStatus.Pending } }, // bỏ ý tưởng chưa duyệt (luồng cũ)
+      include: { topicParticipant: { include: { user: { select: { fullName: true } } } } },
+    });
+    const byStatus: Record<string, number> = {};
+    const bySup: Record<string, number> = {};
+    for (const t of topics) {
+      byStatus[t.status] = (byStatus[t.status] || 0) + 1;
+      const sup = t.topicParticipant.find(p => p.topicParticipantRole === TopicParticipantRole.Supervisor);
+      if (sup?.user?.fullName) bySup[sup.user.fullName] = (bySup[sup.user.fullName] || 0) + 1;
+    }
+    const done = byStatus[TopicStatus.Done] || 0;
+    const cancelled = byStatus[TopicStatus.Cancelled] || 0;
+    const finished = done + cancelled;
+    return {
+      total: topics.length,
+      done,
+      cancelled,
+      inProgress: (byStatus[TopicStatus.InProgress] || 0) + (byStatus[TopicStatus.Reporting] || 0) + (byStatus[TopicStatus.Editing] || 0),
+      passRate: finished ? Math.round((done / finished) * 100) : 0,
+      byStatus,
+      bySupervisor: Object.entries(bySup).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count),
+    };
   }
 
   // Lazy: với danh sách đề tài, tự chuyển Editing đã hết hạn → Done,

@@ -13,6 +13,7 @@ import ProfilePage from '../pages/User/Profile/ProfilePage'
 import RegisterIdeaPage from '../pages/User/RegisterIdea/RegisterIdeaPage'
 import TopicDetailPage from '../pages/User/TopicDetail/TopicDetailPage'
 import CanBoDashboard from '../pages/CanBo/CanBoDashboard'
+import BaoCao from '../pages/CanBo/BaoCao'
 import NotFound from '../pages/NotFound/NotFound'
 
 // Admin pages
@@ -65,6 +66,11 @@ const AppRoutes = () => {
         {/* Khu cán bộ: dashboard riêng (không dùng MainLayout của user) */}
         <Route path="/can-bo" element={
           <ProtectedRoute requiredRole={["FacultyOfficer", "DepartmentOfficer", "Admin"]}><CanBoDashboard /></ProtectedRoute>
+        } />
+
+        {/* Báo cáo thống kê (Trưởng Khoa chỉ đọc + Khoa/Phòng/Admin) */}
+        <Route path="/bao-cao" element={
+          <ProtectedRoute requiredRole={["FacultyDean", "FacultyOfficer", "DepartmentOfficer", "Admin"]}><BaoCao /></ProtectedRoute>
         } />
 
         {/* ===== ADMIN ROUTES (chỉ role Admin mới vào được) ===== */}

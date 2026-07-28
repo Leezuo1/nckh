@@ -28,18 +28,39 @@ const CanBoDashboard = () => {
   const user = authService.getCurrentUser();
   const roleLabel = ROLE_LABEL[user?.role] || 'Cán bộ';
 
+  const isDept = user?.role === 'DepartmentOfficer' || user?.role === 'Admin';
   const [queue, setQueue] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState(null);
   const [proposal, setProposal] = useState({});
   const [comment, setComment] = useState('');
+  const [outcome, setOutcome] = useState('Extend'); // Gia hạn/Làm lại/Huỷ khi nghiệm thu Không đạt
+  const [batches, setBatches] = useState([]);
+  const [batchForm, setBatchForm] = useState({ name: '', year: String(new Date().getFullYear()), deadline: '', description: '' });
 
   const load = useCallback(async () => {
     try {
       const q = await topicService.getReviewQueue();
       setQueue(q || []);
+      if (isDept) {
+        const b = await topicService.getBatches().catch(() => []);
+        setBatches(b || []);
+      }
     } catch (e) { console.error(e); } finally { setLoading(false); }
-  }, []);
+  }, [isDept]);
+
+  const handleCreateBatch = async () => {
+    if (!batchForm.name.trim() || !batchForm.deadline) { toast.error('Nhập tên đợt và hạn nộp'); return; }
+    try {
+      await topicService.createBatch({ ...batchForm, deadline: new Date(batchForm.deadline).toISOString() });
+      toast.success('Đã tạo đợt đề tài + thông báo GVHD');
+      setBatchForm({ name: '', year: String(new Date().getFullYear()), deadline: '', description: '' });
+      await load();
+    } catch (e) { toast.error(e.message || 'Tạo đợt thất bại'); }
+  };
+  const handleToggleBatch = async (id) => {
+    try { await topicService.toggleBatch(id); await load(); } catch (e) { toast.error(e.message || 'Thất bại'); }
+  };
 
   useEffect(() => { load(); }, [load]);
 
@@ -52,17 +73,35 @@ const CanBoDashboard = () => {
     } catch (e) { console.error(e); setProposal({}); }
   };
 
-  const decide = async (id, decision) => {
-    if (decision === 'Rejected' && !comment.trim()) {
-      toast.error('Nhập nhận xét khi trả về chỉnh sửa');
-      return;
-    }
+  const after = async (msg) => { toast.success(msg); setOpenId(null); setComment(''); await load(); };
+
+  // Duyệt hồ sơ nhiều cấp (Khoa/Phòng)
+  const doReview = async (id, decision) => {
+    if (decision === 'Rejected' && !comment.trim()) { toast.error('Nhập nhận xét khi trả về chỉnh sửa'); return; }
     try {
       await topicService.review(id, decision, comment.trim() || undefined);
-      toast.success(decision === 'Approved' ? 'Đã duyệt Đạt' : 'Đã trả về chỉnh sửa');
-      setOpenId(null); setComment('');
-      await load();
+      await after(decision === 'Approved' ? 'Đã duyệt Đạt' : 'Đã trả về chỉnh sửa');
     } catch (e) { toast.error(e.message || 'Duyệt thất bại'); }
+  };
+
+  // Hội đồng đề cương: Đạt → giao đề tài; Không đạt → làm lại
+  const doProposalCouncil = async (id, decision) => {
+    if (decision === 'Rejected' && !comment.trim()) { toast.error('Nhập nhận xét khi không đạt'); return; }
+    try {
+      await topicService.councilProposal(id, decision, comment.trim() || undefined);
+      await after(decision === 'Approved' ? 'Đạt — đã giao đề tài' : 'Không đạt — làm lại đề cương');
+    } catch (e) { toast.error(e.message || 'Thao tác thất bại'); }
+  };
+
+  // Hội đồng phản biện/nghiệm thu
+  const doReviewCouncil = async (id, decision) => {
+    if (decision === 'Rejected' && !comment.trim()) { toast.error('Nhập nhận xét khi không đạt'); return; }
+    try {
+      await topicService.councilReview(id, decision, decision === 'Rejected' ? outcome : undefined, comment.trim() || undefined);
+      const label = decision === 'Approved' ? 'Đã nghiệm thu'
+        : outcome === 'Extend' ? 'Đã gia hạn' : outcome === 'Redo' ? 'Cho làm lại đề cương' : 'Đã huỷ đề tài';
+      await after(label);
+    } catch (e) { toast.error(e.message || 'Thao tác thất bại'); }
   };
 
   return (
@@ -93,6 +132,29 @@ const CanBoDashboard = () => {
 
       {/* Nội dung */}
       <main style={{ flex: 1, padding: '28px 32px', maxWidth: 1000 }}>
+        {/* Quản lý đợt đề tài — chỉ Cán bộ Phòng / Admin */}
+        {isDept && (
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 18, marginBottom: 24 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 12px' }}>🗓 Đợt đề tài</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+              <input placeholder="Tên đợt (vd Đợt 1 - 2026)" value={batchForm.name} onChange={e => setBatchForm({ ...batchForm, name: e.target.value })} style={{ padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6 }} />
+              <input placeholder="Năm" value={batchForm.year} onChange={e => setBatchForm({ ...batchForm, year: e.target.value })} style={{ padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6 }} />
+              <input type="date" value={batchForm.deadline} onChange={e => setBatchForm({ ...batchForm, deadline: e.target.value })} style={{ padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6 }} />
+              <button style={{ ...btn, background: '#2563eb', color: '#fff' }} onClick={handleCreateBatch}>Mở đợt</button>
+            </div>
+            {batches.length === 0 ? (
+              <p style={{ color: '#94a3b8', fontSize: 13, margin: 0 }}>Chưa có đợt nào.</p>
+            ) : batches.map(b => (
+              <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderTop: '1px solid #f1f5f9', fontSize: 14 }}>
+                <span>{b.name} <span style={{ color: '#94a3b8', fontSize: 12 }}>({b.year}) · hạn {new Date(b.deadline).toLocaleDateString('vi-VN')}</span></span>
+                <button onClick={() => handleToggleBatch(b.id)} style={{ ...btn, fontSize: 12, padding: '4px 10px', background: b.isOpen ? '#dcfce7' : '#fee2e2', color: b.isOpen ? '#166534' : '#b91c1c' }}>
+                  {b.isOpen ? 'Đang mở — bấm để đóng' : 'Đã đóng — bấm để mở'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Đề tài chờ duyệt</h1>
         <p style={{ color: '#64748b', marginBottom: 24 }}>Danh sách đề tài đang chờ <b>{roleLabel}</b> duyệt (Đạt / Không đạt kèm nhận xét).</p>
 
@@ -130,10 +192,35 @@ const CanBoDashboard = () => {
                     placeholder="Nhận xét (bắt buộc khi trả về chỉnh sửa)"
                     value={comment} onChange={e => setComment(e.target.value)}
                   />
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <button style={{ ...btn, background: '#16a34a', color: '#fff' }} onClick={() => decide(tp.id, 'Approved')}>Đạt</button>
-                    <button style={{ ...btn, background: '#dc2626', color: '#fff' }} onClick={() => decide(tp.id, 'Rejected')}>Không đạt (trả về)</button>
-                  </div>
+                  {/* Duyệt hồ sơ (Khoa/Phòng) */}
+                  {['PendingFacultyReview', 'PendingDepartmentReview'].includes(tp.status) && (
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button style={{ ...btn, background: '#16a34a', color: '#fff' }} onClick={() => doReview(tp.id, 'Approved')}>Đạt</button>
+                      <button style={{ ...btn, background: '#dc2626', color: '#fff' }} onClick={() => doReview(tp.id, 'Rejected')}>Không đạt (trả về)</button>
+                    </div>
+                  )}
+                  {/* Hội đồng đề cương */}
+                  {tp.status === 'PendingProposalCouncil' && (
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button style={{ ...btn, background: '#16a34a', color: '#fff' }} onClick={() => doProposalCouncil(tp.id, 'Approved')}>Đạt — giao đề tài</button>
+                      <button style={{ ...btn, background: '#dc2626', color: '#fff' }} onClick={() => doProposalCouncil(tp.id, 'Rejected')}>Không đạt — làm lại</button>
+                    </div>
+                  )}
+                  {/* Hội đồng phản biện / nghiệm thu */}
+                  {['InProgress', 'Reporting', 'Editing', 'PendingReviewCouncil'].includes(tp.status) && (
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Hội đồng phản biện / nghiệm thu:</div>
+                      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <button style={{ ...btn, background: '#16a34a', color: '#fff' }} onClick={() => doReviewCouncil(tp.id, 'Approved')}>Nghiệm thu (Đạt)</button>
+                        <select value={outcome} onChange={e => setOutcome(e.target.value)} style={{ padding: '8px', borderRadius: 6, border: '1px solid #cbd5e1' }}>
+                          <option value="Extend">Gia hạn</option>
+                          <option value="Redo">Làm lại đề cương</option>
+                          <option value="Cancel">Huỷ đề tài</option>
+                        </select>
+                        <button style={{ ...btn, background: '#dc2626', color: '#fff' }} onClick={() => doReviewCouncil(tp.id, 'Rejected')}>Không đạt</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

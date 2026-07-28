@@ -34,4 +34,8 @@ export class CreateTopicDto {
   @Min(1)
   @Max(12)
   durationMonths?: number;
+
+  @IsOptional()
+  @IsString()
+  batchId?: string; // Đợt đề tài (SRS) — GVHD chọn khi lập nhóm
 }

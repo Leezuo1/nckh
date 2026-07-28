@@ -44,6 +44,16 @@ const RegisterModal = ({ onClose, onSuccess }) => {
   const [showConfirm, setShowConfirm] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [draftSaved, setDraftSaved] = useState(false) //  Hiện thông báo đã lưu
+  const [batches, setBatches] = useState([])
+  const [selectedBatch, setSelectedBatch] = useState('')
+
+  // GVHD (không phải SV) chọn đợt đề tài để lập nhóm
+  useEffect(() => {
+    if (isStudent) return
+    topicService.getBatches()
+      .then(list => setBatches((list || []).filter(b => b.isOpen)))
+      .catch(() => setBatches([]))
+  }, [isStudent])
 
   //  Hàm lưu nháp
   const handleSaveDraft = () => {
@@ -102,6 +112,7 @@ const RegisterModal = ({ onClose, onSuccess }) => {
         year: String(currentYear),
         deadline: deadline.toISOString(),
         ...(!isStudent && { durationMonths: Number(duration) }),
+        ...(!isStudent && selectedBatch && { batchId: selectedBatch }),
       }
 
       // GVHD/Admin (không phải SV) → tạo NHÓM nghiên cứu (Nháp) theo luồng SRS;
@@ -202,6 +213,21 @@ const RegisterModal = ({ onClose, onSuccess }) => {
 
           {!isStudent && (
             <>
+              <div className="form-group">
+                <label className="form-label">🗓 Đợt đề tài</label>
+                <select className="form-input" value={selectedBatch} onChange={(e) => setSelectedBatch(e.target.value)}>
+                  <option value="">— Không thuộc đợt nào —</option>
+                  {batches.map(b => (
+                    <option key={b.id} value={b.id}>{b.name} ({b.year})</option>
+                  ))}
+                </select>
+                {batches.length === 0 && (
+                  <span style={{ fontSize: 12, color: '#888', marginTop: 4, display: 'block' }}>
+                    Chưa có đợt nào đang mở (Cán bộ Phòng NCKH tạo đợt trong Khu cán bộ).
+                  </span>
+                )}
+              </div>
+              <div className="modal-divider" />
               <div className="form-group">
                 <label className="form-label">⏱ Thời gian thực hiện (tối đa 12 tháng)</label>
                 <select

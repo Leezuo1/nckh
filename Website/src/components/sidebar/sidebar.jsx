@@ -28,6 +28,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const [role, setRole] = useState(readRole);
   const isAdmin = role === 'Admin';
   const isOfficer = role === 'FacultyOfficer' || role === 'DepartmentOfficer';
+  const isDean = role === 'FacultyDean';
 
   useEffect(() => {
     const syncAuth = () => {
@@ -116,6 +117,12 @@ const Sidebar = ({ isOpen, onClose }) => {
           <button className={`menu-btn ${getActiveClass('/can-bo')}`} onClick={() => go('/can-bo', true)}>
             <div className="icon-wrap"><img src={iconProfile} className="icon" alt="canbo" /></div>
             <span className="btn-label">Khu cán bộ (duyệt)</span>
+          </button>
+        )}
+        {(isDean || isOfficer || isAdmin) && (
+          <button className={`menu-btn ${getActiveClass('/bao-cao')}`} onClick={() => go('/bao-cao', true)}>
+            <div className="icon-wrap"><img src={iconOverview} className="icon" alt="baocao" /></div>
+            <span className="btn-label">Báo cáo thống kê</span>
           </button>
         )}
         {!isLoggedIn ? (
