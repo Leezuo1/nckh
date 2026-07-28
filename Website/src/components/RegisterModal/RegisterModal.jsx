@@ -104,7 +104,11 @@ const RegisterModal = ({ onClose, onSuccess }) => {
         ...(!isStudent && { durationMonths: Number(duration) }),
       }
 
-      const newIdea = await topicService.createIdea(payload)
+      // GVHD/Admin (không phải SV) → tạo NHÓM nghiên cứu (Nháp) theo luồng SRS;
+      // SV vẫn đăng ký ý tưởng như cũ.
+      const newIdea = isStudent
+        ? await topicService.createIdea(payload)
+        : await topicService.createGroup(payload)
 
       //  Xóa draft sau khi submit thành công
       localStorage.removeItem(DRAFT_KEY)

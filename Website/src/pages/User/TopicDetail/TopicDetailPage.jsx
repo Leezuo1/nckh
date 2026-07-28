@@ -28,6 +28,17 @@ const getStatusClass = (status) => {
 // Trạng thái khoá: chỉ tải tài liệu, không upload/sửa
 const LOCKED_STATUSES = ['Reporting', 'Done', 'Cancelled']
 
+// ===== Luồng duyệt SRS =====
+const SRS_STATUSES = ['Draft', 'PendingFacultyReview', 'FacultyRevision', 'PendingDepartmentReview', 'DepartmentRevision', 'PendingProposalCouncil']
+const SUBMITTABLE = ['Draft', 'FacultyRevision', 'DepartmentRevision']
+const PROPOSAL_FIELDS = [
+  { key: 'description', label: 'Mô tả đề tài' },
+  { key: 'objective', label: 'Mục tiêu nghiên cứu' },
+  { key: 'projectScope', label: 'Phạm vi / đối tượng' },
+  { key: 'method', label: 'Phương pháp thực hiện' },
+  { key: 'expectedProduct', label: 'Sản phẩm dự kiến' },
+]
+
 const TopicDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -46,6 +57,8 @@ const TopicDetailPage = () => {
   const [accessData, setAccessData] = useState([])
   const [progressInput, setProgressInput] = useState(0)
   const [savingProgress, setSavingProgress] = useState(false)
+  const [srsProposal, setSrsProposal] = useState({})
+  const [inviteMssv, setInviteMssv] = useState('')
 
   const currentUser = authService.getCurrentUser()
   const isLeader = topic?.submitterId === currentUser?.id
@@ -60,6 +73,15 @@ const TopicDetailPage = () => {
   const canEditProgress =
     (topic?.status === 'InProgress' || topic?.status === 'Editing') &&
     (myRole === 'Supervisor' || myRole === 'Leader' || currentUser?.role === 'Admin')
+
+  // ===== Cờ luồng SRS =====
+  const isSrsFlow = topic && SRS_STATUSES.includes(topic.status)
+  const iAmSupervisor = myRole === 'Supervisor'
+  const iAmInvited = myRole === 'Invited'
+  const iAmGroupMember = ['Supervisor', 'Leader', 'Member'].includes(myRole)
+  const canSubmitProposal =
+    (iAmSupervisor || myRole === 'Leader' || currentUser?.role === 'Admin') &&
+    SUBMITTABLE.includes(topic?.status)
 
   // Dữ liệu biểu đồ tiến độ từ progressHistory
   const progressData = (() => {
@@ -85,6 +107,50 @@ const TopicDetailPage = () => {
     } catch (err) { /* toast tự hiện */ }
   }
 
+  // ===== Handlers luồng SRS =====
+  const reloadTopic = async () => {
+    const updated = await topicService.getTopicById(id)
+    setTopic(updated)
+    setSrsProposal(updated.proposalVersions?.[0]?.content || {})
+  }
+  const handleInviteStudent = async () => {
+    if (!inviteMssv.trim()) return
+    try {
+      await topicService.inviteStudent(id, inviteMssv.trim())
+      toast.success('Đã gửi lời mời')
+      setInviteMssv('')
+      await reloadTopic()
+    } catch (err) { /* toast tự hiện */ }
+  }
+  const handleRemoveMember = async (userId) => {
+    try {
+      await topicService.removeInvite(id, userId)
+      toast.success('Đã gỡ khỏi nhóm')
+      await reloadTopic()
+    } catch (err) { /* toast tự hiện */ }
+  }
+  const handleSaveProposal = async () => {
+    try {
+      await topicService.saveProposal(id, srsProposal)
+      toast.success('Đã lưu thuyết minh (tạo phiên bản mới)')
+      await reloadTopic()
+    } catch (err) { /* toast tự hiện */ }
+  }
+  const handleSubmitProposal = async () => {
+    try {
+      await topicService.submitForReview(id)
+      toast.success('Đã nộp hồ sơ lên cấp duyệt')
+      await reloadTopic()
+    } catch (err) { /* toast tự hiện */ }
+  }
+  const handleRespondInvite = async (accept) => {
+    try {
+      await topicService.respondInvite(id, accept)
+      toast.success(accept ? 'Đã tham gia nhóm' : 'Đã từ chối lời mời')
+      await reloadTopic()
+    } catch (err) { /* toast tự hiện */ }
+  }
+
   useEffect(() => {
     const fetchTopic = async () => {
       try {
@@ -101,6 +167,7 @@ const TopicDetailPage = () => {
         setTimelines(tls)
         setAccessData(stats)
         setProgressInput(topicData.progress || 0)
+        setSrsProposal(topicData.proposalVersions?.[0]?.content || {})
 
         // Ghi nhận lượt truy cập (chỉ tính nếu là participant)
         topicService.recordAccess(id).catch(() => {})
@@ -253,6 +320,80 @@ const TopicDetailPage = () => {
           borderRadius: 8, fontSize: 13, marginTop: 12, display: 'inline-block',
         }}>
           ⏳ Đang chờ chủ ý tưởng duyệt yêu cầu của bạn
+        </div>
+      )}
+
+      {/* ===== PANEL LUỒNG DUYỆT SRS (Nháp → Khoa → Phòng) ===== */}
+      {isSrsFlow && (
+        <div style={{ marginTop: 16 }}>
+          {/* SV được mời: chấp nhận / từ chối */}
+          {iAmInvited && (
+            <div style={{ padding: 14, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, marginBottom: 14 }}>
+              <b>GVHD mời bạn tham gia nhóm nghiên cứu này.</b>
+              <div style={{ marginTop: 10, display: 'flex', gap: 10 }}>
+                <button onClick={() => handleRespondInvite(true)} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#16a34a', color: '#fff' }}>Chấp nhận</button>
+                <button onClick={() => handleRespondInvite(false)} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#fee2e2', color: '#b91c1c' }}>Từ chối</button>
+              </div>
+            </div>
+          )}
+
+          {/* GVHD: mời sinh viên */}
+          {iAmSupervisor && (
+            <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 14 }}>
+              <h3 className="section-label" style={{ marginTop: 0 }}>👥 Mời sinh viên vào nhóm</h3>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                <input value={inviteMssv} onChange={e => setInviteMssv(e.target.value)} placeholder="Nhập MSSV để mời"
+                  style={{ flex: 1, padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14 }} />
+                <button onClick={handleInviteStudent} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#2563eb', color: '#fff', whiteSpace: 'nowrap' }}>Mời SV</button>
+              </div>
+              {topic.topicParticipant?.filter(p => ['Invited', 'Member'].includes(p.topicParticipantRole)).map(p => (
+                <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderTop: '1px solid #f1f5f9', fontSize: 14 }}>
+                  <span>{p.user?.fullName} <span style={{ color: '#9ca3af', fontSize: 12 }}>({p.user?.userId})</span> — {p.topicParticipantRole === 'Invited' ? 'Đã mời (chờ)' : 'Thành viên'}</span>
+                  {p.userId && <button onClick={() => handleRemoveMember(p.userId)} style={{ padding: '2px 8px', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, background: '#fee2e2', color: '#b91c1c' }}>Gỡ</button>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Nhóm: soạn thuyết minh + nộp */}
+          {iAmGroupMember && (
+            <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 14 }}>
+              <h3 className="section-label" style={{ marginTop: 0 }}>📝 Thuyết minh đề tài</h3>
+              {PROPOSAL_FIELDS.map(f => (
+                <div key={f.key} style={{ marginBottom: 10 }}>
+                  <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>{f.label}</label>
+                  <textarea value={srsProposal[f.key] || ''} onChange={e => setSrsProposal({ ...srsProposal, [f.key]: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, minHeight: 56, resize: 'vertical', boxSizing: 'border-box' }} />
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={handleSaveProposal} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#e5e7eb', color: '#111' }}>Lưu thuyết minh</button>
+                {canSubmitProposal && (
+                  <button onClick={handleSubmitProposal} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#16a34a', color: '#fff' }}>
+                    {topic.status === 'Draft' ? 'Duyệt sơ bộ & trình Khoa' : 'Nộp lại'}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Lịch sử duyệt (mọi thành viên nhóm) */}
+          {iAmGroupMember && (
+            <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10 }}>
+              <h3 className="section-label" style={{ marginTop: 0 }}>🗂 Lịch sử duyệt</h3>
+              {(!topic.approvalRecords || topic.approvalRecords.length === 0) ? (
+                <p style={{ color: '#9ca3af', fontSize: 13, margin: 0 }}>Chưa có lượt duyệt nào.</p>
+              ) : topic.approvalRecords.map(a => (
+                <div key={a.id} style={{ padding: '8px 0', borderTop: '1px solid #f1f5f9', fontSize: 13 }}>
+                  <b style={{ color: a.decision === 'Approved' ? '#16a34a' : '#dc2626' }}>
+                    {a.level === 'Supervisor' ? 'GVHD' : a.level === 'Faculty' ? 'Cán bộ Khoa' : 'Cán bộ Phòng'} · {a.decision === 'Approved' ? 'Đạt' : 'Không đạt'}
+                  </b>
+                  {a.comment && <div style={{ color: '#4b5563', marginTop: 2 }}>{a.comment}</div>}
+                  <div style={{ color: '#9ca3af', fontSize: 11, marginTop: 2 }}>{a.reviewer?.fullName || 'Hệ thống'} · {new Date(a.created).toLocaleString('vi-VN')}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
