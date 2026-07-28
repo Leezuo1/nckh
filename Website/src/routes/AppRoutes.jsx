@@ -6,7 +6,6 @@ import ProtectedRoute from './ProtectedRoute'
 // User pages
 import Trangchu from '../pages/User/Trangchu/Trangchu'
 import DanhSachDeTai from '../pages/User/DanhSachDeTai/DanhSachDeTai'
-import DanhSachYTuong from '../pages/User/DanhSachYTuong/DanhSachYTuong'
 import GiaoDienDangNhap from '../pages/User/Login/GiaoDienDangNhap'
 import MyTopicPage from '../pages/User/MyTopic/MyTopicPage'
 import ProfilePage from '../pages/User/Profile/ProfilePage'
@@ -20,9 +19,6 @@ import NotFound from '../pages/NotFound/NotFound'
 import QuanLyNguoiDung from '../pages/Admin/QuanLyNguoiDung/QuanLyNguoiDung'
 import QuanLyNguoiDungSV from '../pages/Admin/QuanLyNguoiDungSV/QuanLyNguoiDungSV'
 import QuanLyNguoiDungGV from '../pages/Admin/QuanLyNguoiDungGV/QuanLyNguoiDungGV'
-import DSdetaiAdmin from '../pages/Admin/DSdetaiAdmin/DSdetaiAdmin'
-import DSytuongAdmin from '../pages/Admin/DSytuongAdmin/DSytuongAdmin'
-import QuanLyYTuong from '../pages/Admin/QuanLyYTuong/QuanLyYTuong'
 import Setting from '../pages/Admin/Setting/Setting'
 
 const AppRoutes = () => {
@@ -43,12 +39,9 @@ const AppRoutes = () => {
           <ProtectedRoute><MainLayout><DanhSachDeTai /></MainLayout></ProtectedRoute>
         } />
 
-        <Route path="/danh-sach-y-tuong" element={
-          <ProtectedRoute><MainLayout><DanhSachYTuong /></MainLayout></ProtectedRoute>
-        } />
-
+        {/* Lập nhóm nghiên cứu (GVHD/Admin) — thay cho "Đăng ký ý tưởng" cũ */}
         <Route path="/dang-ky-y-tuong" element={
-          <ProtectedRoute><MainLayout><RegisterIdeaPage /></MainLayout></ProtectedRoute>
+          <ProtectedRoute requiredRole={["Lecturer", "Admin"]}><MainLayout><RegisterIdeaPage /></MainLayout></ProtectedRoute>
         } />
 
         <Route path="/de-tai-cua-toi" element={
@@ -73,19 +66,7 @@ const AppRoutes = () => {
           <ProtectedRoute requiredRole={["FacultyDean", "FacultyOfficer", "DepartmentOfficer", "Admin"]}><BaoCao /></ProtectedRoute>
         } />
 
-        {/* ===== ADMIN ROUTES (chỉ role Admin mới vào được) ===== */}
-        <Route path="/admin/de-tai" element={
-          <ProtectedRoute requiredRole="Admin"><AdminLayout><DSdetaiAdmin /></AdminLayout></ProtectedRoute>
-        } />
-
-        <Route path="/admin/y-tuong" element={
-          <ProtectedRoute requiredRole="Admin"><AdminLayout><DSytuongAdmin /></AdminLayout></ProtectedRoute>
-        } />
-
-        <Route path="/admin/quan-ly-y-tuong" element={
-          <ProtectedRoute requiredRole="Admin"><AdminLayout><QuanLyYTuong /></AdminLayout></ProtectedRoute>
-        } />
-
+        {/* ===== ADMIN ROUTES — chỉ quản trị tài khoản + hệ thống ===== */}
         <Route path="/admin/nguoi-dung" element={
           <ProtectedRoute requiredRole="Admin"><AdminLayout><QuanLyNguoiDung /></AdminLayout></ProtectedRoute>
         } />

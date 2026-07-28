@@ -29,6 +29,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const isAdmin = role === 'Admin';
   const isOfficer = role === 'FacultyOfficer' || role === 'DepartmentOfficer';
   const isDean = role === 'FacultyDean';
+  const isLecturer = role === 'Lecturer';
 
   useEffect(() => {
     const syncAuth = () => {
@@ -90,14 +91,12 @@ const Sidebar = ({ isOpen, onClose }) => {
               <div className="icon-wrap"><img src={iconList} className="icon" alt="list" /></div>
               <span className="btn-label">{t('sidebar.topicList')}</span>
             </button>
-            <button className={`menu-btn sub ${getActiveClass('/danh-sach-y-tuong')}`} onClick={() => go('/danh-sach-y-tuong', true)}>
-              <div className="icon-wrap"><img src={iconIdea} className="icon" alt="idea" /></div>
-              <span className="btn-label">{t('sidebar.ideaList')}</span>
-            </button>
-            <button className={`menu-btn sub ${getActiveClass('/dang-ky-y-tuong')}`} onClick={() => go('/dang-ky-y-tuong', true)}>
-              <div className="icon-wrap"><img src={iconRegister} className="icon" alt="register" /></div>
-              <span className="btn-label">{t('sidebar.registerIdea')}</span>
-            </button>
+            {(isLecturer || isAdmin) && (
+              <button className={`menu-btn sub ${getActiveClass('/dang-ky-y-tuong')}`} onClick={() => go('/dang-ky-y-tuong', true)}>
+                <div className="icon-wrap"><img src={iconRegister} className="icon" alt="register" /></div>
+                <span className="btn-label">Lập nhóm nghiên cứu</span>
+              </button>
+            )}
             <button className={`menu-btn sub ${getActiveClass('/de-tai-cua-toi')}`} onClick={() => go('/de-tai-cua-toi', true)}>
               <div className="icon-wrap"><img src={iconMyTopic} className="icon" alt="folder" /></div>
               <span className="btn-label">{t('sidebar.myTopics')}</span>
@@ -108,7 +107,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       <div className="sidebar-footer">
         {isAdmin && (
-          <button className={`menu-btn ${getActiveClass('/admin/de-tai')}`} onClick={() => go('/admin/de-tai', true)}>
+          <button className={`menu-btn ${getActiveClass('/admin/nguoi-dung')}`} onClick={() => go('/admin/nguoi-dung', true)}>
             <div className="icon-wrap"><img src={iconProfile} className="icon" alt="admin" /></div>
             <span className="btn-label">{t('sidebar.adminPortal')}</span>
           </button>

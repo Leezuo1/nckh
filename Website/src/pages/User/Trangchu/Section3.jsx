@@ -44,7 +44,7 @@ const Section3 = () => {
           </div>
           <div className="header-main-row">
             <h2 className="section3-main-title">{t('home.sectionWaiting.title')}</h2>
-            <button className="btn-xem-tat-ca" onClick={() => navigate('/danh-sach-y-tuong')}>
+            <button className="btn-xem-tat-ca" onClick={() => navigate('/danh-sach-de-tai')}>
               {t('home.sectionWaiting.viewAll')} ➔
             </button>
           </div>
@@ -59,7 +59,7 @@ const Section3 = () => {
               key={item.id}
               className={`home-card-ytuong ${visible ? 'fade-in-up' : ''}`}
               style={{ transitionDelay: `${index * 0.1}s` }}
-              onClick={() => navigate('/danh-sach-y-tuong')}
+              onClick={() => navigate('/danh-sach-de-tai')}
             >
               <div className="card-ytuong-body">
                 <div className="card-top-row">

@@ -277,7 +277,7 @@ const ProfilePage = () => {
               {t('profile.adminDesc')}
             </p>
             <button
-              onClick={() => navigate('/admin/de-tai')}
+              onClick={() => navigate('/admin/nguoi-dung')}
               style={{ width: '100%', padding: '10px', background: '#1e2d5a', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}
               onMouseEnter={e => e.target.style.background = '#be1e2d'}
               onMouseLeave={e => e.target.style.background = '#1e2d5a'}

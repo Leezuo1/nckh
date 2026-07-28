@@ -25,14 +25,11 @@ const SidebarAdmin = ({ activeMenu, onMenuChange }) => {
     ? user.fullName.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase()
     : 'AD';
   const displayName = user?.fullName?.split(' ').pop() || t('sidebarAdmin.admin');
+  // Admin chỉ quản trị tài khoản + hệ thống. Quản lý đề tài/duyệt đã chuyển sang Khu cán bộ.
   const menuItems = [
-    { id: "de_tai", label: t('sidebarAdmin.topicList'), icon: BookOpen },
-    { id: "y_tuong", label: t('sidebarAdmin.ideaList'), icon: Smartphone },
-    { id: "quan_ly_y_tuong", label: t('sidebarAdmin.manageIdeas'), icon: ClipboardList },
     { id: "nguoi_dung", label: t('sidebarAdmin.users'), icon: UserCircle },
     { id: "sinh_vien", label: t('sidebarAdmin.students'), icon: Users },
     { id: "giang_vien", label: t('sidebarAdmin.lecturers'), icon: GraduationCap },
-    { id: "bao_cao", label: "-----", icon: BarChart3 },
   ];
 
   return (
