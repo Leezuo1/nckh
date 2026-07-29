@@ -6,6 +6,7 @@ import ProtectedRoute from './ProtectedRoute'
 // User pages
 import Trangchu from '../pages/User/Trangchu/Trangchu'
 import DanhSachDeTai from '../pages/User/DanhSachDeTai/DanhSachDeTai'
+import DanhSachYTuong from '../pages/User/DanhSachYTuong/DanhSachYTuong'
 import GiaoDienDangNhap from '../pages/User/Login/GiaoDienDangNhap'
 import MyTopicPage from '../pages/User/MyTopic/MyTopicPage'
 import ProfilePage from '../pages/User/Profile/ProfilePage'
@@ -37,6 +38,11 @@ const AppRoutes = () => {
 
         <Route path="/danh-sach-de-tai" element={
           <ProtectedRoute><MainLayout><DanhSachDeTai /></MainLayout></ProtectedRoute>
+        } />
+
+        {/* Danh sách ý tưởng — trang user xem đề tài chưa có nhóm (chưa assign) */}
+        <Route path="/danh-sach-y-tuong" element={
+          <ProtectedRoute><MainLayout><DanhSachYTuong /></MainLayout></ProtectedRoute>
         } />
 
         {/* Lập nhóm nghiên cứu (GVHD/Admin) — thay cho "Đăng ký ý tưởng" cũ */}

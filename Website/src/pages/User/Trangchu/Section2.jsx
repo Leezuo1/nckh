@@ -59,7 +59,7 @@ export default function Section2() {
       title: t('home.sectionFeatures.card2Title'),
       description: savedNav?.ideaList || t('home.sectionFeatures.card2Desc'),
       cta: t('home.sectionFeatures.card2Cta'),
-      href: "/danh-sach-de-tai",
+      href: "/danh-sach-y-tuong",
     },
     {
       id: "register",

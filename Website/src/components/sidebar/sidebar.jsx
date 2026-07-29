@@ -91,6 +91,10 @@ const Sidebar = ({ isOpen, onClose }) => {
               <div className="icon-wrap"><img src={iconList} className="icon" alt="list" /></div>
               <span className="btn-label">{t('sidebar.topicList')}</span>
             </button>
+            <button className={`menu-btn sub ${getActiveClass('/danh-sach-y-tuong')}`} onClick={() => go('/danh-sach-y-tuong', true)}>
+              <div className="icon-wrap"><img src={iconIdea} className="icon" alt="idea" /></div>
+              <span className="btn-label">{t('sidebar.ideaList')}</span>
+            </button>
             {(isLecturer || isAdmin) && (
               <button className={`menu-btn sub ${getActiveClass('/dang-ky-y-tuong')}`} onClick={() => go('/dang-ky-y-tuong', true)}>
                 <div className="icon-wrap"><img src={iconRegister} className="icon" alt="register" /></div>
