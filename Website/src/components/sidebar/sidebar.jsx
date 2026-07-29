@@ -116,16 +116,10 @@ const Sidebar = ({ isOpen, onClose }) => {
             <span className="btn-label">{t('sidebar.adminPortal')}</span>
           </button>
         )}
-        {(isOfficer || isAdmin) && (
+        {(isOfficer || isAdmin || isDean) && (
           <button className={`menu-btn ${getActiveClass('/can-bo')}`} onClick={() => go('/can-bo', true)}>
             <div className="icon-wrap"><img src={iconProfile} className="icon" alt="canbo" /></div>
-            <span className="btn-label">Khu cán bộ (duyệt)</span>
-          </button>
-        )}
-        {(isDean || isOfficer || isAdmin) && (
-          <button className={`menu-btn ${getActiveClass('/bao-cao')}`} onClick={() => go('/bao-cao', true)}>
-            <div className="icon-wrap"><img src={iconOverview} className="icon" alt="baocao" /></div>
-            <span className="btn-label">Báo cáo thống kê</span>
+            <span className="btn-label">Khu cán bộ</span>
           </button>
         )}
         {!isLoggedIn ? (

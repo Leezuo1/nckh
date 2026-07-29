@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { ClipboardCheck, LogOut, FileText } from 'lucide-react';
+import { ClipboardCheck, LogOut, FileText, BarChart3 } from 'lucide-react';
 import topicService from '../../services/topicService';
 import authService from '../../services/authService';
+import ReportContent from './ReportContent';
 
 const PROPOSAL_FIELDS = [
   { key: 'description', label: 'Mô tả đề tài' },
@@ -29,6 +30,9 @@ const CanBoDashboard = () => {
   const roleLabel = ROLE_LABEL[user?.role] || 'Cán bộ';
 
   const isDept = user?.role === 'DepartmentOfficer' || user?.role === 'Admin';
+  const canReview = ['FacultyOfficer', 'DepartmentOfficer', 'Admin'].includes(user?.role);
+  const isDean = user?.role === 'FacultyDean';
+  const [view, setView] = useState(canReview ? 'duyet' : 'baocao'); // 'duyet' | 'baocao'
   const [queue, setQueue] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState(null);
@@ -40,14 +44,16 @@ const CanBoDashboard = () => {
 
   const load = useCallback(async () => {
     try {
-      const q = await topicService.getReviewQueue();
-      setQueue(q || []);
-      if (isDept) {
-        const b = await topicService.getBatches().catch(() => []);
-        setBatches(b || []);
+      if (canReview) {
+        const q = await topicService.getReviewQueue();
+        setQueue(q || []);
+        if (isDept) {
+          const b = await topicService.getBatches().catch(() => []);
+          setBatches(b || []);
+        }
       }
     } catch (e) { console.error(e); } finally { setLoading(false); }
-  }, [isDept]);
+  }, [isDept, canReview]);
 
   const handleCreateBatch = async () => {
     if (!batchForm.name.trim() || !batchForm.deadline) { toast.error('Nhập tên đợt và hạn nộp'); return; }
@@ -118,9 +124,16 @@ const CanBoDashboard = () => {
           </div>
         </div>
 
-        <button style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#1e293b', color: '#fff', border: 'none', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
-          <FileText size={18} /> Đề tài chờ duyệt
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {canReview && (
+            <button onClick={() => setView('duyet')} style={{ display: 'flex', alignItems: 'center', gap: 10, background: view === 'duyet' ? '#1e293b' : 'transparent', color: view === 'duyet' ? '#fff' : '#cbd5e1', border: 'none', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600, textAlign: 'left' }}>
+              <FileText size={18} /> Đề tài chờ duyệt
+            </button>
+          )}
+          <button onClick={() => setView('baocao')} style={{ display: 'flex', alignItems: 'center', gap: 10, background: view === 'baocao' ? '#1e293b' : 'transparent', color: view === 'baocao' ? '#fff' : '#cbd5e1', border: 'none', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600, textAlign: 'left' }}>
+            <BarChart3 size={18} /> Báo cáo thống kê
+          </button>
+        </div>
 
         <div style={{ marginTop: 'auto', borderTop: '1px solid #1e293b', paddingTop: 16 }}>
           <div style={{ fontSize: 13, marginBottom: 10 }}>{user?.fullName}</div>
@@ -132,6 +145,7 @@ const CanBoDashboard = () => {
 
       {/* Nội dung */}
       <main style={{ flex: 1, padding: '28px 32px', maxWidth: 1000 }}>
+        {view === 'duyet' && (<>
         {/* Quản lý đợt đề tài — chỉ Cán bộ Phòng / Admin */}
         {isDept && (
           <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 18, marginBottom: 24 }}>
@@ -226,6 +240,15 @@ const CanBoDashboard = () => {
             </div>
           );
         })}
+        </>)}
+
+        {view === 'baocao' && (
+          <>
+            <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Báo cáo thống kê</h1>
+            <p style={{ color: '#64748b', marginBottom: 24 }}>Tổng quan đề tài nghiên cứu khoa học (chỉ đọc).</p>
+            <ReportContent />
+          </>
+        )}
       </main>
     </div>
   );
