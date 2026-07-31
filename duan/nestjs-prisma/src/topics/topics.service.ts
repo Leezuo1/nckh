@@ -243,6 +243,8 @@ export class TopicsService {
         ...rest,
         ...(!isStudent && { durationMonths }),
         isAssigned: false,
+        isApproved: false,
+        status: TopicStatus.PendingFacultyReview, // vào thẳng chuỗi duyệt Khoa → Phòng
         submitterId,
         deadline: new Date(dto.deadline),
       },
@@ -1168,7 +1170,23 @@ export class TopicsService {
         throw new ForbiddenException('Chỉ Cán bộ Phòng NCKH mới được duyệt ở bước này');
       }
       level = ApprovalLevel.Department;
-      next = decision === ApprovalDecision.Approved ? TopicStatus.PendingProposalCouncil : TopicStatus.DepartmentRevision;
+      if (decision === ApprovalDecision.Rejected) {
+        next = TopicStatus.DepartmentRevision;
+      } else {
+        // Phòng Đạt: đủ người (có GVHD + có SV) → Chờ bắt đầu; thiếu người → chờ assign.
+        // Tính cả submitter (người đăng ý tưởng) lẫn participant.
+        const parts = await this.prisma.topicParticipant.findMany({ where: { topicId } });
+        const submitter = topic.submitterId
+          ? await this.prisma.user.findUnique({ where: { id: topic.submitterId }, select: { role: true } })
+          : null;
+        const hasSup =
+          parts.some(p => p.topicParticipantRole === TopicParticipantRole.Supervisor) ||
+          submitter?.role === UserRole.Lecturer || submitter?.role === UserRole.Admin;
+        const hasStu =
+          parts.some(p => p.topicParticipantRole === TopicParticipantRole.Leader || p.topicParticipantRole === TopicParticipantRole.Member) ||
+          submitter?.role === UserRole.Student;
+        next = (hasSup && hasStu) ? TopicStatus.WaitingToStart : TopicStatus.PendingAssign;
+      }
     } else {
       throw new BadRequestException('Đề tài không ở trạng thái chờ duyệt');
     }
@@ -1180,7 +1198,13 @@ export class TopicsService {
     await this.prisma.approvalRecord.create({
       data: { topicId, level, decision, comment, reviewerId },
     });
-    const updated = await this.prisma.topic.update({ where: { id: topicId }, data: { status: next } });
+    const data: any = { status: next };
+    // Phòng Đạt: đánh dấu đã duyệt; nếu đủ người thì cũng đánh dấu đã assign
+    if (level === ApprovalLevel.Department && decision === ApprovalDecision.Approved) {
+      data.isApproved = true;
+      if (next === TopicStatus.WaitingToStart) data.isAssigned = true;
+    }
+    const updated = await this.prisma.topic.update({ where: { id: topicId }, data });
 
     const levelLabel = level === ApprovalLevel.Faculty ? 'Cán bộ NCKH Khoa' : 'Cán bộ Phòng NCKH';
     const verdict = decision === ApprovalDecision.Approved ? 'ĐẠT' : 'trả về chỉnh sửa';

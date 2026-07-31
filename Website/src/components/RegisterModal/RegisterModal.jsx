@@ -4,6 +4,7 @@ import './RegisterModal.css'
 import ConfirmDialog from '../Common/ConfirmDialog'
 import topicService from '../../services/topicService'
 import authService from '../../services/authService'
+import documentService from '../../services/documentService'
 
 const DRAFT_KEY = 'register_idea_draft'
 
@@ -46,6 +47,7 @@ const RegisterModal = ({ onClose, onSuccess }) => {
   const [draftSaved, setDraftSaved] = useState(false) //  Hiện thông báo đã lưu
   const [batches, setBatches] = useState([])
   const [selectedBatch, setSelectedBatch] = useState('')
+  const [proposalFile, setProposalFile] = useState(null) // file thuyết minh (bắt buộc)
 
   // GVHD (không phải SV) chọn đợt đề tài để lập nhóm
   useEffect(() => {
@@ -80,6 +82,7 @@ const RegisterModal = ({ onClose, onSuccess }) => {
     if (!title.trim()) newErrors.title = t('register.errTitle')
     if (!description.trim()) newErrors.description = t('register.errDesc')
     if (!dept) newErrors.dept = t('register.errDept')
+    if (!proposalFile) newErrors.file = 'Vui lòng đính kèm file thuyết minh đề tài'
     if (isStudent) {
       students.forEach((student, index) => {
         if (!student.fullName.trim()) newErrors[`fullName_${index}`] = true
@@ -120,6 +123,11 @@ const RegisterModal = ({ onClose, onSuccess }) => {
       const newIdea = isStudent
         ? await topicService.createIdea(payload)
         : await topicService.createGroup(payload)
+
+      // Nộp file thuyết minh (bắt buộc) — gắn vào topic vừa tạo
+      if (proposalFile && newIdea?.id) {
+        try { await documentService.upload(newIdea.id, proposalFile, 'Thuyết minh') } catch { /* toast tự hiện */ }
+      }
 
       //  Xóa draft sau khi submit thành công
       localStorage.removeItem(DRAFT_KEY)
@@ -178,6 +186,20 @@ const RegisterModal = ({ onClose, onSuccess }) => {
               onChange={(e) => { setDescription(e.target.value); setErrors(prev => ({ ...prev, description: '' })) }}
             />
             {errors.description && <span className="error-msg">{errors.description}</span>}
+          </div>
+
+          <div className="modal-divider" />
+
+          <div className="form-group">
+            <label className="form-label">📎 File thuyết minh đề tài (bắt buộc)</label>
+            <input
+              type="file"
+              accept=".doc,.docx,.pdf"
+              className={`form-input ${errors.file ? 'input-error' : ''}`}
+              onChange={(e) => { setProposalFile(e.target.files[0] || null); setErrors(prev => ({ ...prev, file: '' })) }}
+            />
+            {proposalFile && <span style={{ fontSize: 12, color: '#28a745', marginTop: 4, display: 'block' }}>✓ {proposalFile.name}</span>}
+            {errors.file && <span className="error-msg">{errors.file}</span>}
           </div>
 
           <div className="modal-divider" />

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ClipboardCheck, LogOut, FileText, BarChart3 } from 'lucide-react';
 import topicService from '../../services/topicService';
 import authService from '../../services/authService';
+import documentService from '../../services/documentService';
 import ReportContent from './ReportContent';
 
 const PROPOSAL_FIELDS = [
@@ -37,6 +38,7 @@ const CanBoDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState(null);
   const [proposal, setProposal] = useState({});
+  const [docs, setDocs] = useState([]);
   const [comment, setComment] = useState('');
   const [outcome, setOutcome] = useState('Extend'); // Gia hạn/Làm lại/Huỷ khi nghiệm thu Không đạt
   const [batches, setBatches] = useState([]);
@@ -77,6 +79,10 @@ const CanBoDashboard = () => {
       const versions = await topicService.getProposalVersions(id);
       setProposal(versions?.[0]?.content || {});
     } catch (e) { console.error(e); setProposal({}); }
+    try {
+      const d = await documentService.getByTopic(id);
+      setDocs(d || []);
+    } catch (e) { console.error(e); setDocs([]); }
   };
 
   const after = async (msg) => { toast.success(msg); setOpenId(null); setComment(''); await load(); };
@@ -195,6 +201,17 @@ const CanBoDashboard = () => {
 
               {open && (
                 <div style={{ marginTop: 14, borderTop: '1px solid #f1f5f9', paddingTop: 14 }}>
+                  {docs.length > 0 && (
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>📎 Tài liệu đề tài</div>
+                      {docs.map(d => (
+                        <button key={d.id} onClick={() => documentService.download(d.id, d.fileName).catch(err => toast.error(err.message || 'Không tải được'))}
+                          style={{ display: 'block', background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontSize: 13, padding: '2px 0', textAlign: 'left' }}>
+                          ⬇ {d.fileName} {d.note ? `(${d.note})` : ''}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   {PROPOSAL_FIELDS.map(f => (
                     <div key={f.key} style={{ marginBottom: 10 }}>
                       <div style={{ fontSize: 13, fontWeight: 600 }}>{f.label}</div>
