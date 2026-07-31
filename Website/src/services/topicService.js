@@ -195,6 +195,26 @@ const topicService = {
   getReportStats() {
     return api.get('/report-stats');
   },
+
+  // ===== Luồng mới: cấp GVHD, báo cáo, hội đồng, điểm =====
+  getLecturersList() {
+    return api.get('/lecturers-list');
+  },
+  assignSupervisor(topicId, lecturerId) {
+    return api.patch(`/topics/${topicId}/assign-supervisor`, { lecturerId });
+  },
+  requestReport(topicId) {
+    return api.patch(`/topics/${topicId}/request-report`);
+  },
+  reviewReport(topicId, decision) {
+    return api.patch(`/topics/${topicId}/review-report`, { decision });
+  },
+  createReportCouncil(topicId, lecturerIds, scheduledAt, location) {
+    return api.patch(`/topics/${topicId}/report-council`, { lecturerIds, scheduledAt, location });
+  },
+  enterScore(topicId, score, editDeadline) {
+    return api.patch(`/topics/${topicId}/score`, { score, editDeadline });
+  },
 };
 
 export default topicService;

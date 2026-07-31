@@ -38,6 +38,7 @@ enum TopicStatus {
   InProgress
   ReportPendingFaculty    // Chủ nhiệm xin Báo cáo → chờ Khoa duyệt yêu cầu
   ReportPendingDepartment // Khoa OK → chờ Phòng duyệt yêu cầu báo cáo
+  ReportApproved          // Phòng OK → chờ Cán bộ Khoa lập hội đồng
   Reporting      // Báo Cáo (khoá, hội đồng chấm)
   Editing        // Chỉnh Sửa (mở lại trong editDeadline, hết giờ → Done)
   Done           // hiển thị "Nghiệm thu"

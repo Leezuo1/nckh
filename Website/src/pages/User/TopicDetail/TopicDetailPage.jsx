@@ -151,6 +151,15 @@ const TopicDetailPage = () => {
     } catch (err) { /* toast tự hiện */ }
   }
 
+  // Chủ nhiệm/GVHD xin báo cáo (InProgress → chuỗi duyệt Khoa→Phòng)
+  const handleRequestReport = async () => {
+    try {
+      await topicService.requestReport(id)
+      toast.success('Đã gửi yêu cầu báo cáo lên Cán bộ Khoa')
+      await reloadTopic()
+    } catch (err) { /* toast tự hiện */ }
+  }
+
   // FR-12: Xuất thuyết minh ra file Word (.doc) — không cần thư viện ngoài
   const handleExportWord = () => {
     const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -319,6 +328,28 @@ const TopicDetailPage = () => {
 
       {/* Tiêu đề */}
       <h1 className="detail-title">{topic.topicName}</h1>
+
+      {/* Điểm nghiệm thu (nếu có) */}
+      {topic.score != null && (
+        <div style={{ display: 'inline-block', marginTop: 8, padding: '6px 14px', background: '#dcfce7', color: '#166534', borderRadius: 8, fontWeight: 700 }}>
+          🎓 Điểm: {topic.score}
+        </div>
+      )}
+
+      {/* Xin báo cáo — chủ nhiệm/GVHD khi đang thực hiện */}
+      {topic.status === 'InProgress' && (myRole === 'Supervisor' || myRole === 'Leader') && (
+        <div style={{ marginTop: 12 }}>
+          <button onClick={handleRequestReport}
+            style={{ padding: '10px 24px', background: '#be1e2d', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+            📢 Xin báo cáo
+          </button>
+        </div>
+      )}
+      {['ReportPendingFaculty', 'ReportPendingDepartment', 'ReportApproved'].includes(topic.status) && (
+        <div style={{ marginTop: 12, padding: '8px 16px', background: '#fff3cd', color: '#856404', borderRadius: 8, fontSize: 13, display: 'inline-block' }}>
+          ⏳ Yêu cầu báo cáo đang được duyệt...
+        </div>
+      )}
 
       {/* Nút Xin tham gia — nếu là ý tưởng chưa assign và không phải của mình */}
       {canRequestJoin && (

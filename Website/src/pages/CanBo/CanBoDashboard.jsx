@@ -43,6 +43,12 @@ const CanBoDashboard = () => {
   const [outcome, setOutcome] = useState('Extend'); // Gia hạn/Làm lại/Huỷ khi nghiệm thu Không đạt
   const [batches, setBatches] = useState([]);
   const [batchForm, setBatchForm] = useState({ name: '', year: String(new Date().getFullYear()), deadline: '', description: '' });
+  const [lecturers, setLecturers] = useState([]);
+  const [pickLec, setPickLec] = useState('');        // cấp GVHD
+  const [councilLecs, setCouncilLecs] = useState([]); // hội đồng
+  const [councilTime, setCouncilTime] = useState('');
+  const [score, setScore] = useState('');
+  const [dateTime, setDateTime] = useState('');       // giờ bắt đầu / hạn chỉnh sửa
 
   const load = useCallback(async () => {
     try {
@@ -53,9 +59,39 @@ const CanBoDashboard = () => {
           const b = await topicService.getBatches().catch(() => []);
           setBatches(b || []);
         }
+        const lec = await topicService.getLecturersList().catch(() => []);
+        setLecturers(lec || []);
       }
     } catch (e) { console.error(e); } finally { setLoading(false); }
   }, [isDept, canReview]);
+
+  // Handlers luồng mới
+  const doAssignSup = async (id) => {
+    if (!pickLec) { toast.error('Chọn GVHD'); return; }
+    try { await topicService.assignSupervisor(id, pickLec); await after('Đã cấp GVHD → Chờ bắt đầu'); setPickLec(''); }
+    catch (e) { toast.error(e.message || 'Thất bại'); }
+  };
+  const doStart = async (id, now) => {
+    try {
+      if (now) await topicService.proceedTopics([id]);
+      else { if (!dateTime) { toast.error('Chọn ngày bắt đầu'); return; } await topicService.scheduleStart([id], new Date(dateTime).toISOString()); }
+      await after(now ? 'Đã bắt đầu thực hiện' : 'Đã đặt lịch bắt đầu'); setDateTime('');
+    } catch (e) { toast.error(e.message || 'Thất bại'); }
+  };
+  const doReviewReport = async (id, decision) => {
+    try { await topicService.reviewReport(id, decision); await after(decision === 'Approved' ? 'Đã duyệt yêu cầu báo cáo' : 'Đã từ chối'); }
+    catch (e) { toast.error(e.message || 'Thất bại'); }
+  };
+  const doCreateCouncil = async (id) => {
+    if (!councilLecs.length) { toast.error('Chọn ít nhất 1 GVHD vào hội đồng'); return; }
+    try { await topicService.createReportCouncil(id, councilLecs, councilTime ? new Date(councilTime).toISOString() : undefined); await after('Đã lập hội đồng → Báo cáo'); setCouncilLecs([]); setCouncilTime(''); }
+    catch (e) { toast.error(e.message || 'Thất bại'); }
+  };
+  const doEnterScore = async (id) => {
+    if (score === '' || !dateTime) { toast.error('Nhập điểm + hạn chỉnh sửa'); return; }
+    try { await topicService.enterScore(id, Number(score), new Date(dateTime).toISOString()); await after('Đã nhập điểm + mở chỉnh sửa'); setScore(''); setDateTime(''); }
+    catch (e) { toast.error(e.message || 'Thất bại'); }
+  };
 
   const handleCreateBatch = async () => {
     if (!batchForm.name.trim() || !batchForm.deadline) { toast.error('Nhập tên đợt và hạn nộp'); return; }
@@ -230,27 +266,62 @@ const CanBoDashboard = () => {
                       <button style={{ ...btn, background: '#dc2626', color: '#fff' }} onClick={() => doReview(tp.id, 'Rejected')}>Không đạt (trả về)</button>
                     </div>
                   )}
-                  {/* Hội đồng đề cương */}
-                  {tp.status === 'PendingProposalCouncil' && (
-                    <div style={{ display: 'flex', gap: 10 }}>
-                      <button style={{ ...btn, background: '#16a34a', color: '#fff' }} onClick={() => doProposalCouncil(tp.id, 'Approved')}>Đạt — giao đề tài</button>
-                      <button style={{ ...btn, background: '#dc2626', color: '#fff' }} onClick={() => doProposalCouncil(tp.id, 'Rejected')}>Không đạt — làm lại</button>
+                  {/* Cán bộ Khoa: cấp GVHD cho ý tưởng thiếu người */}
+                  {tp.status === 'PendingAssign' && (
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <select value={pickLec} onChange={e => setPickLec(e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cbd5e1' }}>
+                        <option value="">— Chọn GVHD —</option>
+                        {lecturers.map(l => <option key={l.id} value={l.id}>{l.fullName} ({l.userId})</option>)}
+                      </select>
+                      <button style={{ ...btn, background: '#2563eb', color: '#fff' }} onClick={() => doAssignSup(tp.id)}>Cấp GVHD</button>
                     </div>
                   )}
-                  {/* Hội đồng phản biện / nghiệm thu */}
-                  {['InProgress', 'Reporting', 'Editing', 'PendingReviewCouncil'].includes(tp.status) && (
+                  {/* Cán bộ Khoa: set thời gian bắt đầu */}
+                  {tp.status === 'WaitingToStart' && (
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <input type="date" value={dateTime} onChange={e => setDateTime(e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cbd5e1' }} />
+                      <button style={{ ...btn, background: '#0891b2', color: '#fff' }} onClick={() => doStart(tp.id, false)}>Đặt lịch bắt đầu</button>
+                      <button style={{ ...btn, background: '#16a34a', color: '#fff' }} onClick={() => doStart(tp.id, true)}>Bắt đầu ngay</button>
+                    </div>
+                  )}
+                  {/* Duyệt yêu cầu báo cáo (Khoa/Phòng) */}
+                  {['ReportPendingFaculty', 'ReportPendingDepartment'].includes(tp.status) && (
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button style={{ ...btn, background: '#16a34a', color: '#fff' }} onClick={() => doReviewReport(tp.id, 'Approved')}>Đồng ý báo cáo</button>
+                      <button style={{ ...btn, background: '#dc2626', color: '#fff' }} onClick={() => doReviewReport(tp.id, 'Rejected')}>Từ chối</button>
+                    </div>
+                  )}
+                  {/* Cán bộ Khoa: lập hội đồng báo cáo */}
+                  {tp.status === 'ReportApproved' && (
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Hội đồng phản biện / nghiệm thu:</div>
-                      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <button style={{ ...btn, background: '#16a34a', color: '#fff' }} onClick={() => doReviewCouncil(tp.id, 'Approved')}>Nghiệm thu (Đạt)</button>
-                        <select value={outcome} onChange={e => setOutcome(e.target.value)} style={{ padding: '8px', borderRadius: 6, border: '1px solid #cbd5e1' }}>
-                          <option value="Extend">Gia hạn</option>
-                          <option value="Redo">Làm lại đề cương</option>
-                          <option value="Cancel">Huỷ đề tài</option>
-                        </select>
-                        <button style={{ ...btn, background: '#dc2626', color: '#fff' }} onClick={() => doReviewCouncil(tp.id, 'Rejected')}>Không đạt</button>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Chọn GVHD vào hội đồng:</div>
+                      <div style={{ maxHeight: 130, overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: 6, padding: 8, marginBottom: 8 }}>
+                        {lecturers.map(l => (
+                          <label key={l.id} style={{ display: 'block', fontSize: 13, padding: '2px 0', cursor: 'pointer' }}>
+                            <input type="checkbox" checked={councilLecs.includes(l.id)}
+                              onChange={e => setCouncilLecs(e.target.checked ? [...councilLecs, l.id] : councilLecs.filter(x => x !== l.id))} /> {l.fullName} ({l.userId})
+                          </label>
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <input type="datetime-local" value={councilTime} onChange={e => setCouncilTime(e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cbd5e1' }} />
+                        <button style={{ ...btn, background: '#7c3aed', color: '#fff' }} onClick={() => doCreateCouncil(tp.id)}>Lập hội đồng → Báo cáo</button>
                       </div>
                     </div>
+                  )}
+                  {/* Cán bộ Khoa: nhập điểm + mở chỉnh sửa */}
+                  {tp.status === 'Reporting' && (
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <input type="number" step="0.1" min="0" max="10" placeholder="Điểm" value={score} onChange={e => setScore(e.target.value)} style={{ width: 90, padding: 8, borderRadius: 6, border: '1px solid #cbd5e1' }} />
+                      <span style={{ fontSize: 13, color: '#64748b' }}>Hạn chỉnh sửa:</span>
+                      <input type="datetime-local" value={dateTime} onChange={e => setDateTime(e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cbd5e1' }} />
+                      <button style={{ ...btn, background: '#16a34a', color: '#fff' }} onClick={() => doEnterScore(tp.id)}>Nhập điểm & mở chỉnh sửa</button>
+                    </div>
+                  )}
+                  {['InProgress', 'Editing'].includes(tp.status) && (
+                    <p style={{ fontSize: 13, color: '#94a3b8', margin: 0 }}>
+                      {tp.status === 'InProgress' ? 'Đang thực hiện — chờ nhóm gửi yêu cầu báo cáo.' : 'Đang chỉnh sửa — hết giờ tự Nghiệm thu.'}
+                    </p>
                   )}
                 </div>
               )}

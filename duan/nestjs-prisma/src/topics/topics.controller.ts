@@ -50,7 +50,7 @@ export class TopicsController {
   // PATCH /api/topics/proceed  body: { ids: string[] }
   @Patch('topics/proceed')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.Admin)
+  @Roles(UserRole.FacultyOfficer, UserRole.Admin)
   proceed(@Body('ids') ids: string[], @Request() req) {
     return this.topicsService.proceed(ids, req.user.id);
   }
@@ -58,7 +58,7 @@ export class TopicsController {
   // PATCH /api/topics/undo  body: { ids: string[] }
   @Patch('topics/undo')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.Admin)
+  @Roles(UserRole.FacultyOfficer, UserRole.Admin)
   undo(@Body('ids') ids: string[], @Request() req) {
     return this.topicsService.undo(ids, req.user.id);
   }
@@ -66,7 +66,7 @@ export class TopicsController {
   // PATCH /api/topics/start-editing  body: { ids: string[], editDeadline: string }
   @Patch('topics/start-editing')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.Admin)
+  @Roles(UserRole.FacultyOfficer, UserRole.Admin)
   startEditing(
     @Body('ids') ids: string[],
     @Body('editDeadline') editDeadline: string,
@@ -78,7 +78,7 @@ export class TopicsController {
   // PATCH /api/topics/schedule-start  body: { ids: string[], startDate: string, endDate?: string }
   @Patch('topics/schedule-start')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.Admin)
+  @Roles(UserRole.FacultyOfficer, UserRole.Admin)
   scheduleStart(
     @Body('ids') ids: string[],
     @Body('startDate') startDate: string,
@@ -337,5 +337,55 @@ export class TopicsController {
   @Roles(UserRole.FacultyOfficer, UserRole.DepartmentOfficer, UserRole.FacultyDean, UserRole.Admin)
   reportStats() {
     return this.topicsService.getReportStats();
+  }
+
+  // ===== PHA 2: cấp GVHD =====
+  // GET /api/lecturers-list — danh sách GVHD để cán bộ chọn
+  @Get('lecturers-list')
+  listLecturers() {
+    return this.topicsService.listLecturers();
+  }
+
+  // PATCH /api/topics/:id/assign-supervisor — Cán bộ Khoa cấp GVHD
+  @Patch('topics/:id/assign-supervisor')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.FacultyOfficer, UserRole.Admin)
+  assignSupervisor(@Param('id') id: string, @Body('lecturerId') lecturerId: string, @Request() req) {
+    return this.topicsService.assignSupervisor(id, lecturerId, req.user.id);
+  }
+
+  // ===== PHA 4: báo cáo + hội đồng + điểm =====
+  // PATCH /api/topics/:id/request-report — chủ nhiệm/GVHD xin báo cáo
+  @Patch('topics/:id/request-report')
+  requestReport(@Param('id') id: string, @Request() req) {
+    return this.topicsService.requestReport(id, req.user.id);
+  }
+
+  // PATCH /api/topics/:id/review-report — Cán bộ Khoa/Phòng duyệt yêu cầu báo cáo
+  @Patch('topics/:id/review-report')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.FacultyOfficer, UserRole.DepartmentOfficer, UserRole.Admin)
+  reviewReport(@Param('id') id: string, @Body('decision') decision: ApprovalDecision, @Request() req) {
+    return this.topicsService.reviewReport(id, req.user.id, decision);
+  }
+
+  // PATCH /api/topics/:id/report-council — Cán bộ Khoa lập hội đồng báo cáo
+  @Patch('topics/:id/report-council')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.FacultyOfficer, UserRole.Admin)
+  reportCouncil(
+    @Param('id') id: string,
+    @Body() body: { lecturerIds: string[]; scheduledAt?: string; location?: string },
+    @Request() req,
+  ) {
+    return this.topicsService.createReportCouncil(id, body, req.user.id);
+  }
+
+  // PATCH /api/topics/:id/score — Cán bộ Khoa nhập điểm + mở chỉnh sửa
+  @Patch('topics/:id/score')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.FacultyOfficer, UserRole.Admin)
+  enterScore(@Param('id') id: string, @Body() body: { score: number; editDeadline: string }, @Request() req) {
+    return this.topicsService.enterScore(id, body, req.user.id);
   }
 }
