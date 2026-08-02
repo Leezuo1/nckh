@@ -44,9 +44,9 @@ const AppRoutes = () => {
           <ProtectedRoute><MainLayout><DanhSachYTuong /></MainLayout></ProtectedRoute>
         } />
 
-        {/* Lập nhóm nghiên cứu (GVHD/Admin) — thay cho "Đăng ký ý tưởng" cũ */}
+        {/* Đăng ký ý tưởng — SV & GVHD (đều nộp file thuyết minh) */}
         <Route path="/dang-ky-y-tuong" element={
-          <ProtectedRoute requiredRole={["Lecturer", "Admin"]}><MainLayout><RegisterIdeaPage /></MainLayout></ProtectedRoute>
+          <ProtectedRoute><MainLayout><RegisterIdeaPage /></MainLayout></ProtectedRoute>
         } />
 
         <Route path="/de-tai-cua-toi" element={

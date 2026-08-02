@@ -30,6 +30,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const isOfficer = role === 'FacultyOfficer' || role === 'DepartmentOfficer';
   const isDean = role === 'FacultyDean';
   const isLecturer = role === 'Lecturer';
+  const isStudent = role === 'Student';
 
   useEffect(() => {
     const syncAuth = () => {
@@ -95,10 +96,10 @@ const Sidebar = ({ isOpen, onClose }) => {
               <div className="icon-wrap"><img src={iconIdea} className="icon" alt="idea" /></div>
               <span className="btn-label">{t('sidebar.ideaList')}</span>
             </button>
-            {(isLecturer || isAdmin) && (
+            {(isStudent || isLecturer || isAdmin) && (
               <button className={`menu-btn sub ${getActiveClass('/dang-ky-y-tuong')}`} onClick={() => go('/dang-ky-y-tuong', true)}>
                 <div className="icon-wrap"><img src={iconRegister} className="icon" alt="register" /></div>
-                <span className="btn-label">Lập nhóm nghiên cứu</span>
+                <span className="btn-label">{t('sidebar.registerIdea')}</span>
               </button>
             )}
             <button className={`menu-btn sub ${getActiveClass('/de-tai-cua-toi')}`} onClick={() => go('/de-tai-cua-toi', true)}>
