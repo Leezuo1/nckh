@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast'
 import Sidebar from '../components/sidebar/sidebar'
 import Header from '../components/header/header'
 import Footer from '../components/Footer/Footer'
+import ChatBot from '../components/ChatBot/ChatBot'
 import './MainLayout.css'
 import { RiMenuLine } from 'react-icons/ri'
 
@@ -70,6 +71,9 @@ const MainLayout = ({ children }) => {
         </div>
 
       </div>
+
+      {/* Trợ lý chatbot (nổi góc phải) */}
+      <ChatBot />
     </div>
   )
 }
