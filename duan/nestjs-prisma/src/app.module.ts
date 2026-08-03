@@ -8,8 +8,9 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { StatsModule } from './stats/stats.module';
 import { TimelinesModule } from './timelines/timelines.module';
 import { ActivitiesModule } from './activities/activities.module';
+import { ChatbotModule } from './chatbot/chatbot.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, TopicsModule, DocumentsModule, NotificationsModule, StatsModule, TimelinesModule, ActivitiesModule],
+  imports: [PrismaModule, AuthModule, UsersModule, TopicsModule, DocumentsModule, NotificationsModule, StatsModule, TimelinesModule, ActivitiesModule, ChatbotModule],
 })
 export class AppModule {}

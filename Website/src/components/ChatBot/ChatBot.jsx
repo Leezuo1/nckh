@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot } from 'lucide-react';
+import chatbotService from '../../services/chatbotService';
 
 const NAVY = '#1e2d5a';
 const RED = '#be1e2d';
@@ -109,20 +110,34 @@ const ChatBot = () => {
   const [messages, setMessages] = useState([
     { from: 'bot', text: 'Xin chào 👋 Mình là trợ lý NCKH. Bạn cần giải đáp gì về đăng ký, duyệt, báo cáo hay nghiệm thu đề tài?' },
   ]);
+  const [typing, setTyping] = useState(false);
   const bodyRef = useRef(null);
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-  }, [messages, open]);
+  }, [messages, open, typing]);
 
-  const ask = (text) => {
+  const ask = async (text) => {
     const q = (text ?? input).trim();
-    if (!q) return;
+    if (!q || typing) return;
     setMessages((prev) => [...prev, { from: 'user', text: q }]);
     setInput('');
-    setTimeout(() => {
+
+    // Chưa đăng nhập → dùng FAQ local (backend cần token). Đã đăng nhập → gọi AI thật.
+    const loggedIn = localStorage.getItem('is_logged_in') === 'true';
+    if (!loggedIn) {
+      setTimeout(() => setMessages((prev) => [...prev, { from: 'bot', text: findAnswer(q) }]), 300);
+      return;
+    }
+    setTyping(true);
+    try {
+      const res = await chatbotService.ask(q); // { answer, source }
+      setMessages((prev) => [...prev, { from: 'bot', text: res?.answer || findAnswer(q) }]);
+    } catch {
       setMessages((prev) => [...prev, { from: 'bot', text: findAnswer(q) }]);
-    }, 350);
+    } finally {
+      setTyping(false);
+    }
   };
 
   return (
@@ -187,6 +202,14 @@ const ChatBot = () => {
                 </div>
               </div>
             ))}
+
+            {typing && (
+              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <div style={{ padding: '9px 14px', borderRadius: 14, background: '#fff', border: '1px solid #e5e7eb', color: '#94a3b8', fontSize: 14 }}>
+                  Đang trả lời...
+                </div>
+              </div>
+            )}
 
             {/* Gợi ý câu hỏi */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
