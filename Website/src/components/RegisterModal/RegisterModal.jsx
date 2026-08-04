@@ -132,6 +132,8 @@ const RegisterModal = ({ onClose, onSuccess }) => {
         deadline: deadline.toISOString(),
         ...(!isStudent && { durationMonths: Number(duration) }),
         ...(!isStudent && selectedBatch && { batchId: selectedBatch }),
+        // SV đăng ký ý tưởng: gửi danh sách thành viên nhóm (theo MSSV)
+        ...(isStudent && { members: students }),
       }
 
       // GVHD/Admin (không phải SV) → tạo NHÓM nghiên cứu (Nháp) theo luồng SRS;
@@ -147,6 +149,11 @@ const RegisterModal = ({ onClose, onSuccess }) => {
 
       //  Xóa draft sau khi submit thành công
       localStorage.removeItem(DRAFT_KEY)
+
+      // Cảnh báo nếu có thành viên chưa thêm được (MSSV chưa có tài khoản / đang bận / không phải SV)
+      if (newIdea?.memberWarnings?.length) {
+        window.alert('Đăng ký thành công, nhưng một số thành viên chưa được thêm vào nhóm:\n\n- ' + newIdea.memberWarnings.join('\n- '))
+      }
 
       setIsLoading(false)
       setShowConfirm(false)

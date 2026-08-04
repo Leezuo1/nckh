@@ -235,8 +235,8 @@ export class TopicsService {
     }
 
     // SV không được tự set thời gian thực hiện — chỉ GV mới được.
-    // Bỏ durationMonths khỏi dữ liệu nếu người đăng ký là SV (dùng mặc định ở schema).
-    const { durationMonths, ...rest } = dto;
+    // Bỏ durationMonths + members khỏi dữ liệu topic (members xử lý riêng bên dưới).
+    const { durationMonths, members, ...rest } = dto;
 
     const created = await this.prisma.topic.create({
       data: {
@@ -249,8 +249,37 @@ export class TopicsService {
         deadline: new Date(dto.deadline),
       },
     });
+
+    // Người đăng ký = Chủ nhiệm (Leader) nếu là SV, hoặc Supervisor nếu là GV
+    await this.prisma.topicParticipant.create({
+      data: {
+        topicId: created.id,
+        userId: submitterId,
+        topicParticipantRole: isStudent ? TopicParticipantRole.Leader : TopicParticipantRole.Supervisor,
+      },
+    });
+
+    // Thêm các thành viên nhóm theo MSSV (best-effort — bỏ qua & cảnh báo nếu không hợp lệ)
+    const memberWarnings: string[] = [];
+    const submitterUser = await this.prisma.user.findUnique({ where: { id: submitterId }, select: { userId: true } });
+    for (const m of members || []) {
+      const mssv = (m?.studentId || '').trim();
+      if (!mssv) continue;
+      if (submitterUser?.userId === mssv) continue; // chính chủ, đã là Leader
+      const acc = await this.prisma.user.findUnique({ where: { userId: mssv } });
+      if (!acc) { memberWarnings.push(`MSSV ${mssv} chưa có tài khoản — chưa thêm vào nhóm`); continue; }
+      if (acc.role !== UserRole.Student) { memberWarnings.push(`${mssv} không phải tài khoản sinh viên`); continue; }
+      const dup = await this.prisma.topicParticipant.findFirst({ where: { topicId: created.id, userId: acc.id } });
+      if (dup) continue;
+      const busy = await this.findStudentActiveTopic(acc.id, created.id);
+      if (busy) { memberWarnings.push(`${acc.fullName} đang ở đề tài "${busy.topicName}" — chưa thêm`); continue; }
+      await this.prisma.topicParticipant.create({
+        data: { topicId: created.id, userId: acc.id, topicParticipantRole: TopicParticipantRole.Member },
+      });
+    }
+
     await this.activities.log(submitterId, 'Đăng ký ý tưởng', `"${dto.topicName}"`, created.id);
-    return created;
+    return { ...created, memberWarnings };
   }
 
   // ===== XIN JOIN ĐỀ TÀI =====

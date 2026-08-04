@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsDateString, IsInt, Min, Max } from 'class-validator';
+import { IsString, IsOptional, IsDateString, IsInt, IsArray, Min, Max } from 'class-validator';
 
 export class CreateTopicDto {
   @IsString()
@@ -38,4 +38,8 @@ export class CreateTopicDto {
   @IsOptional()
   @IsString()
   batchId?: string; // Đợt đề tài (SRS) — GVHD chọn khi lập nhóm
+
+  @IsOptional()
+  @IsArray()
+  members?: { studentId?: string; fullName?: string; year?: string; batch?: string }[]; // thành viên nhóm (SV đăng ký ý tưởng)
 }
