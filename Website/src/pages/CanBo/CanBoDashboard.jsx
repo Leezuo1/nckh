@@ -40,6 +40,7 @@ const CanBoDashboard = () => {
 
   const isDept = user?.role === 'DepartmentOfficer' || user?.role === 'Admin';
   const isKhoa = user?.role === 'FacultyOfficer' || user?.role === 'Admin';
+  const isAdmin = user?.role === 'Admin';
   const canReview = ['FacultyOfficer', 'DepartmentOfficer', 'Admin'].includes(user?.role);
   const isDean = user?.role === 'FacultyDean';
   const [view, setView] = useState(canReview ? 'duyet' : 'baocao'); // 'duyet' | 'baocao'
@@ -115,6 +116,13 @@ const CanBoDashboard = () => {
     if (reason === null) return; // bấm Cancel
     try { await topicService.cancelTopic(id, reason.trim() || undefined); await after('Đã huỷ đề tài'); }
     catch (e) { toast.error(e.message || 'Huỷ thất bại'); }
+  };
+
+  // Xóa đề tài VĨNH VIỄN (chỉ Admin) — khác Huỷ (Huỷ vẫn giữ hồ sơ để thống kê)
+  const doDelete = async (id, name) => {
+    if (!window.confirm(`XÓA VĨNH VIỄN đề tài "${name}"?\nToàn bộ hồ sơ, tài liệu, lịch sử sẽ bị xóa và KHÔNG khôi phục được.`)) return;
+    try { await topicService.deleteTopic(id); await after('Đã xóa đề tài'); }
+    catch (e) { toast.error(e.message || 'Xóa thất bại'); }
   };
 
   // ===== Thao tác hàng loạt (tab Điều hành) =====
@@ -325,8 +333,12 @@ const CanBoDashboard = () => {
                       style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#f1f5f9', color: '#475569' }}>↩ Lùi bước</button>
                   )}
                   {view === 'dieuhanh' && !['Done', 'Cancelled'].includes(tp.status) && (
-                    <button onClick={() => doCancel(tp.id)} title="Huỷ đề tài"
+                    <button onClick={() => doCancel(tp.id)} title="Huỷ đề tài (vẫn giữ hồ sơ)"
                       style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#fee2e2', color: '#b91c1c' }}>✕ Huỷ đề tài</button>
+                  )}
+                  {isAdmin && (
+                    <button onClick={() => doDelete(tp.id, tp.topicName)} title="Xóa vĩnh viễn đề tài"
+                      style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#7f1d1d', color: '#fff' }}>🗑 Xóa</button>
                   )}
                   <span style={{ color: '#94a3b8', cursor: 'pointer' }} onClick={() => openTopic(tp.id)}>{open ? '▲' : '▼'}</span>
                 </div>
