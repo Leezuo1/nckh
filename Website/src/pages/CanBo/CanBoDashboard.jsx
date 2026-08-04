@@ -214,7 +214,7 @@ const CanBoDashboard = () => {
       </aside>
 
       {/* Nội dung */}
-      <main style={{ flex: 1, padding: '28px 32px', maxWidth: 1000 }}>
+      <main style={{ flex: 1, minWidth: 0, padding: '28px 40px' }}>
         {/* Tab Đợt đề tài (Cán bộ Phòng / Admin) */}
         {view === 'dot' && (
           <>
