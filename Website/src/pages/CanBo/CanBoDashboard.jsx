@@ -29,6 +29,9 @@ const CanBoDashboard = () => {
   const navigate = useNavigate();
   const user = authService.getCurrentUser();
   const roleLabel = ROLE_LABEL[user?.role] || 'Cán bộ';
+  const avatarText = user?.fullName
+    ? user.fullName.trim().split(' ').slice(-2).map(w => w[0]).join('').toUpperCase()
+    : 'CB';
 
   const isDept = user?.role === 'DepartmentOfficer' || user?.role === 'Admin';
   const canReview = ['FacultyOfficer', 'DepartmentOfficer', 'Admin'].includes(user?.role);
@@ -91,6 +94,12 @@ const CanBoDashboard = () => {
     if (score === '' || !dateTime) { toast.error('Nhập điểm + hạn chỉnh sửa'); return; }
     try { await topicService.enterScore(id, Number(score), new Date(dateTime).toISOString()); await after('Đã nhập điểm + mở chỉnh sửa'); setScore(''); setDateTime(''); }
     catch (e) { toast.error(e.message || 'Thất bại'); }
+  };
+  // Lùi trạng thái 1 bước (sửa sai) — dùng lại state machine vòng đời
+  const doUndo = async (id) => {
+    if (!window.confirm('Lùi đề tài về trạng thái liền trước?')) return;
+    try { await topicService.undoTopics([id]); await after('Đã lùi 1 bước'); }
+    catch (e) { toast.error(e.message || 'Không lùi được ở trạng thái này'); }
   };
 
   const handleCreateBatch = async () => {
@@ -178,8 +187,16 @@ const CanBoDashboard = () => {
         </div>
 
         <div style={{ marginTop: 'auto', borderTop: '1px solid #1e293b', paddingTop: 16 }}>
-          <div style={{ fontSize: 13, marginBottom: 10 }}>{user?.fullName}</div>
-          <button onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'transparent', color: '#f87171', border: 'none', cursor: 'pointer', fontSize: 13 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#2563eb', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
+              {avatarText}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.fullName}</div>
+              <div style={{ fontSize: 11, color: '#94a3b8' }}>{roleLabel}</div>
+            </div>
+          </div>
+          <button onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: '#1e293b', color: '#f87171', border: 'none', borderRadius: 8, padding: '9px', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
             <LogOut size={16} /> Về trang người dùng
           </button>
         </div>
@@ -232,7 +249,13 @@ const CanBoDashboard = () => {
                     {tp.topicId} · GVHD: {supervisor?.user?.fullName || '—'} · <span style={{ color: '#2563eb' }}>{t(`status.${tp.status}`, tp.status)}</span>
                   </div>
                 </div>
-                <span style={{ color: '#94a3b8' }}>{open ? '▲' : '▼'}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} onClick={(e) => e.stopPropagation()}>
+                  {['WaitingToStart', 'InProgress', 'ReportPendingFaculty', 'ReportPendingDepartment', 'ReportApproved', 'Reporting', 'Editing'].includes(tp.status) && (
+                    <button onClick={() => doUndo(tp.id)} title="Lùi trạng thái 1 bước"
+                      style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#f1f5f9', color: '#475569' }}>↩ Lùi bước</button>
+                  )}
+                  <span style={{ color: '#94a3b8', cursor: 'pointer' }} onClick={() => openTopic(tp.id)}>{open ? '▲' : '▼'}</span>
+                </div>
               </div>
 
               {open && (
