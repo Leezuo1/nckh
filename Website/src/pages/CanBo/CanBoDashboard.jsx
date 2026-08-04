@@ -250,7 +250,7 @@ const CanBoDashboard = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} onClick={(e) => e.stopPropagation()}>
-                  {['WaitingToStart', 'InProgress', 'ReportPendingFaculty', 'ReportPendingDepartment', 'ReportApproved', 'Reporting', 'Editing'].includes(tp.status) && (
+                  {['InProgress', 'Reporting', 'Editing', 'Done'].includes(tp.status) && (
                     <button onClick={() => doUndo(tp.id)} title="Lùi trạng thái 1 bước"
                       style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#f1f5f9', color: '#475569' }}>↩ Lùi bước</button>
                   )}
