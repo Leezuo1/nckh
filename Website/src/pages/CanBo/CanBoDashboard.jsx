@@ -40,7 +40,6 @@ const CanBoDashboard = () => {
 
   const isDept = user?.role === 'DepartmentOfficer' || user?.role === 'Admin';
   const isKhoa = user?.role === 'FacultyOfficer' || user?.role === 'Admin';
-  const isAdmin = user?.role === 'Admin';
   const canReview = ['FacultyOfficer', 'DepartmentOfficer', 'Admin'].includes(user?.role);
   const isDean = user?.role === 'FacultyDean';
   const [view, setView] = useState(canReview ? 'duyet' : 'baocao'); // 'duyet' | 'baocao'
@@ -336,7 +335,7 @@ const CanBoDashboard = () => {
                     <button onClick={() => doCancel(tp.id)} title="Huỷ đề tài (vẫn giữ hồ sơ)"
                       style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#fee2e2', color: '#b91c1c' }}>✕ Huỷ đề tài</button>
                   )}
-                  {isAdmin && (
+                  {isKhoa && (
                     <button onClick={() => doDelete(tp.id, tp.topicName)} title="Xóa vĩnh viễn đề tài"
                       style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#7f1d1d', color: '#fff' }}>🗑 Xóa</button>
                   )}

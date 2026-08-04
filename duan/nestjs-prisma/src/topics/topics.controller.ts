@@ -98,10 +98,10 @@ export class TopicsController {
     return this.topicsService.update(id, dto, req.user);
   }
 
-  // DELETE /api/topics/:id (Admin only)
+  // DELETE /api/topics/:id (Cán bộ NCKH Khoa / Admin)
   @Delete('topics/:id')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.Admin)
+  @Roles(UserRole.FacultyOfficer, UserRole.Admin)
   remove(@Param('id') id: string) {
     return this.topicsService.remove(id);
   }
