@@ -48,6 +48,7 @@ const RegisterModal = ({ onClose, onSuccess }) => {
   const [batches, setBatches] = useState([])
   const [selectedBatch, setSelectedBatch] = useState('')
   const [proposalFile, setProposalFile] = useState(null) // file thuyết minh (bắt buộc)
+  const [formError, setFormError] = useState('') // thông báo lỗi chung khi bấm Xác nhận
 
   // GVHD (không phải SV) chọn đợt đề tài để lập nhóm
   useEffect(() => {
@@ -70,6 +71,12 @@ const RegisterModal = ({ onClose, onSuccess }) => {
     setStudents([...students, { ...emptyStudent }])
   }
 
+  const handleRemoveStudent = (index) => {
+    if (students.length <= 1) return
+    setStudents(students.filter((_, i) => i !== index))
+    setErrors({}) // reset lỗi vì index thay đổi
+  }
+
   const handleStudentChange = (index, field, value) => {
     const updated = [...students]
     updated[index][field] = value
@@ -84,7 +91,11 @@ const RegisterModal = ({ onClose, onSuccess }) => {
     if (!dept) newErrors.dept = t('register.errDept')
     if (!proposalFile) newErrors.file = 'Vui lòng đính kèm file thuyết minh đề tài'
     if (isStudent) {
-      students.forEach((student, index) => {
+      // Bỏ các dòng SV hoàn toàn trống (thêm dư rồi không dùng)
+      const filled = students.filter(s => s.fullName.trim() || s.studentId.trim() || s.year || s.batch)
+      const list = filled.length ? filled : [{ ...emptyStudent }]
+      if (list.length !== students.length) setStudents(list)
+      list.forEach((student, index) => {
         if (!student.fullName.trim()) newErrors[`fullName_${index}`] = true
         if (!student.studentId.trim()) newErrors[`studentId_${index}`] = true
         if (!student.year) newErrors[`year_${index}`] = true
@@ -94,7 +105,12 @@ const RegisterModal = ({ onClose, onSuccess }) => {
       if (!lecturer.fullName.trim()) newErrors['lec_fullName'] = true
       if (!lecturer.lecturerId.trim()) newErrors['lec_id'] = true
     }
-    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      setFormError('Vui lòng điền đầy đủ các ô đang để trống (viền đỏ). Dòng sinh viên không dùng thì bấm ✕ để xóa.')
+      return
+    }
+    setFormError('')
     setShowConfirm(true)
   }
 
@@ -274,7 +290,13 @@ const RegisterModal = ({ onClose, onSuccess }) => {
               <label className="form-label">ⓘ {t('register.studentInfo')}</label>
               {students.map((student, index) => (
                 <div key={index} className="student-row">
-                  <span className="student-label">{t('register.studentNum')} {index + 1}</span>
+                  <span className="student-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                    <span>{t('register.studentNum')} {index + 1}</span>
+                    {students.length > 1 && (
+                      <button type="button" onClick={() => handleRemoveStudent(index)} title="Xóa sinh viên này"
+                        style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', borderRadius: 4, width: 22, height: 22, cursor: 'pointer', fontSize: 13, lineHeight: 1 }}>✕</button>
+                    )}
+                  </span>
                   <div className="student-fields">
                     <input
                       className={`form-input ${errors[`fullName_${index}`] ? 'input-error' : ''}`}
@@ -344,6 +366,12 @@ const RegisterModal = ({ onClose, onSuccess }) => {
         </div>
 
         <div className="modal-divider" />
+
+        {formError && (
+          <div style={{ margin: '0 24px 8px', padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#b91c1c', fontSize: 13 }}>
+            ⚠️ {formError}
+          </div>
+        )}
 
         <div className="modal-footer">
           {/*  Nút lưu nháp có feedback */}
