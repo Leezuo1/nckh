@@ -109,6 +109,14 @@ const CanBoDashboard = () => {
     catch (e) { toast.error(e.message || 'Không lùi được ở trạng thái này'); }
   };
 
+  // Huỷ đề tài (Cán bộ Khoa) — dừng hẳn ở bất kỳ giai đoạn nào
+  const doCancel = async (id) => {
+    const reason = window.prompt('Lý do huỷ đề tài (có thể để trống):');
+    if (reason === null) return; // bấm Cancel
+    try { await topicService.cancelTopic(id, reason.trim() || undefined); await after('Đã huỷ đề tài'); }
+    catch (e) { toast.error(e.message || 'Huỷ thất bại'); }
+  };
+
   // ===== Thao tác hàng loạt (tab Điều hành) =====
   const toggleSel = (id) => setSelectedIds(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
   const bulkStart = async () => {
@@ -315,6 +323,10 @@ const CanBoDashboard = () => {
                   {['InProgress', 'Reporting', 'Editing', 'Done'].includes(tp.status) && (
                     <button onClick={() => doUndo(tp.id)} title="Lùi trạng thái 1 bước"
                       style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#f1f5f9', color: '#475569' }}>↩ Lùi bước</button>
+                  )}
+                  {view === 'dieuhanh' && !['Done', 'Cancelled'].includes(tp.status) && (
+                    <button onClick={() => doCancel(tp.id)} title="Huỷ đề tài"
+                      style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#fee2e2', color: '#b91c1c' }}>✕ Huỷ đề tài</button>
                   )}
                   <span style={{ color: '#94a3b8', cursor: 'pointer' }} onClick={() => openTopic(tp.id)}>{open ? '▲' : '▼'}</span>
                 </div>

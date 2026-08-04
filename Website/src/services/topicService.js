@@ -215,6 +215,9 @@ const topicService = {
   enterScore(topicId, score, editDeadline) {
     return api.patch(`/topics/${topicId}/score`, { score, editDeadline });
   },
+  cancelTopic(topicId, reason) {
+    return api.patch(`/topics/${topicId}/cancel`, { reason });
+  },
 };
 
 export default topicService;

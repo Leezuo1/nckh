@@ -1574,6 +1574,23 @@ export class TopicsService {
     return updated;
   }
 
+  // Huỷ đề tài (Cán bộ NCKH Khoa / Admin) — dừng hẳn đề tài ở bất kỳ giai đoạn nào (trừ đã Nghiệm thu / đã Huỷ)
+  async cancelTopic(topicId: string, officerId: string, reason?: string) {
+    const officer = await this.prisma.user.findUnique({ where: { id: officerId } });
+    if (officer?.role !== UserRole.FacultyOfficer && officer?.role !== UserRole.Admin) {
+      throw new ForbiddenException('Chỉ Cán bộ NCKH Khoa mới được huỷ đề tài');
+    }
+    const topic = await this.prisma.topic.findUnique({ where: { id: topicId } });
+    if (!topic) throw new NotFoundException('Không tìm thấy đề tài');
+    if (topic.status === TopicStatus.Done) throw new BadRequestException('Đề tài đã nghiệm thu, không thể huỷ');
+    if (topic.status === TopicStatus.Cancelled) throw new BadRequestException('Đề tài đã bị huỷ trước đó');
+
+    const updated = await this.prisma.topic.update({ where: { id: topicId }, data: { status: TopicStatus.Cancelled } });
+    await this.notifyGroup(topicId, 'Đề tài đã bị huỷ', `Đề tài "${topic.topicName}" đã bị huỷ.${reason ? ' Lý do: ' + reason : ''}`, `/de-tai-cua-toi/${topicId}`);
+    await this.activities.log(officerId, 'Huỷ đề tài', `"${topic.topicName}"${reason ? ' — ' + reason : ''}`, topicId);
+    return updated;
+  }
+
   // Lazy: với danh sách đề tài, tự chuyển Editing đã hết hạn → Done,
   // và gắn cờ isLate (InProgress đã quá deadline) để FE hiển thị badge "Trễ".
   private async decorateTopics<T extends { id: string; status: TopicStatus; startDate?: Date | null; deadline?: Date | null; editDeadline?: Date | null }>(topics: T[]): Promise<(T & { isLate: boolean })[]> {

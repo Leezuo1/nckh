@@ -388,4 +388,12 @@ export class TopicsController {
   enterScore(@Param('id') id: string, @Body() body: { score: number; editDeadline: string }, @Request() req) {
     return this.topicsService.enterScore(id, body, req.user.id);
   }
+
+  // PATCH /api/topics/:id/cancel — Cán bộ Khoa huỷ đề tài
+  @Patch('topics/:id/cancel')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.FacultyOfficer, UserRole.Admin)
+  cancelTopic(@Param('id') id: string, @Body() body: { reason?: string }, @Request() req) {
+    return this.topicsService.cancelTopic(id, req.user.id, body?.reason);
+  }
 }
