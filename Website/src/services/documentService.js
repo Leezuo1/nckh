@@ -17,6 +17,11 @@ const documentService = {
     return api.get(`/documents/topic/${topicId}`);
   },
 
+  // Tổng hợp toàn bộ tài liệu (cán bộ/khoa/phòng/admin)
+  getAll() {
+    return api.get('/documents/all');
+  },
+
   // Xóa document
   delete(id) {
     return api.delete(`/documents/${id}`);

@@ -73,7 +73,17 @@ export class DocumentsController {
     return res.download(filePath, doc.fileName);
   }
 
-  // GET /api/documents/topic/:topicId 
+  // GET /api/documents/all — tổng hợp toàn bộ tài liệu (chỉ cán bộ/khoa/phòng/admin)
+  @Get('all')
+  findAll(@Request() req) {
+    const allowed = ['FacultyOfficer', 'DepartmentOfficer', 'FacultyDean', 'Admin'];
+    if (!allowed.includes(req.user.role)) {
+      throw new BadRequestException('Bạn không có quyền xem tổng hợp tài liệu');
+    }
+    return this.documentsService.findAll();
+  }
+
+  // GET /api/documents/topic/:topicId
   @Get('topic/:topicId')
   findByTopic(@Param('topicId') topicId: string) {
     return this.documentsService.findByTopic(topicId);

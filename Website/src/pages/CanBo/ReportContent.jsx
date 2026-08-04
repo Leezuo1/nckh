@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import topicService from '../../services/topicService';
+import documentService from '../../services/documentService';
+
+const fmtSize = (n) => n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
 
 const STATUS_ORDER = [
   'Draft', 'PendingFacultyReview', 'FacultyRevision', 'PendingDepartmentReview',
@@ -15,13 +19,27 @@ const ReportContent = () => {
   const { t } = useTranslation();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [docs, setDocs] = useState([]);
+  const [docQuery, setDocQuery] = useState('');
 
   useEffect(() => {
     topicService.getReportStats()
       .then(setStats)
       .catch(e => console.error(e))
       .finally(() => setLoading(false));
+    documentService.getAll()
+      .then(d => setDocs(d || []))
+      .catch(e => console.error(e));
   }, []);
+
+  const q = docQuery.trim().toLowerCase();
+  const shownDocs = q
+    ? docs.filter(d =>
+        (d.fileName || '').toLowerCase().includes(q) ||
+        (d.topic?.topicName || '').toLowerCase().includes(q) ||
+        (d.uploader?.fullName || '').toLowerCase().includes(q) ||
+        (d.note || '').toLowerCase().includes(q))
+    : docs;
 
   const maxSup = stats?.bySupervisor?.[0]?.count || 1;
 
@@ -70,6 +88,53 @@ const ReportContent = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Tổng hợp tài liệu toàn bộ đề tài */}
+      <div style={{ ...card, marginTop: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
+          <h3 style={{ margin: 0, fontSize: 16 }}>📎 Tổng hợp tài liệu <span style={{ color: '#94a3b8', fontWeight: 400, fontSize: 13 }}>({shownDocs.length})</span></h3>
+          <input value={docQuery} onChange={e => setDocQuery(e.target.value)} placeholder="Tìm theo tên file / đề tài / người nộp / loại"
+            style={{ padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, minWidth: 260 }} />
+        </div>
+        {docs.length === 0 ? (
+          <p style={{ color: '#94a3b8', fontSize: 13, margin: 0 }}>Chưa có tài liệu nào được nộp.</p>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: '#64748b', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '8px 6px' }}>Đề tài</th>
+                  <th style={{ padding: '8px 6px' }}>Loại</th>
+                  <th style={{ padding: '8px 6px' }}>Tên file</th>
+                  <th style={{ padding: '8px 6px' }}>Người nộp</th>
+                  <th style={{ padding: '8px 6px' }}>Ngày</th>
+                  <th style={{ padding: '8px 6px' }}>Cỡ</th>
+                  <th style={{ padding: '8px 6px' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {shownDocs.map(d => (
+                  <tr key={d.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '8px 6px' }}>
+                      <div style={{ fontWeight: 600 }}>{d.topic?.topicName || '—'}</div>
+                      <div style={{ color: '#94a3b8', fontSize: 12 }}>{d.topic?.topicId} · {t(`status.${d.topic?.status}`, d.topic?.status)}</div>
+                    </td>
+                    <td style={{ padding: '8px 6px' }}>{d.note ? <span style={{ background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: 20, fontSize: 12 }}>{d.note}</span> : '—'}</td>
+                    <td style={{ padding: '8px 6px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.fileName}>{d.fileName}</td>
+                    <td style={{ padding: '8px 6px' }}>{d.uploader?.fullName || '—'}</td>
+                    <td style={{ padding: '8px 6px', color: '#64748b' }}>{new Date(d.uploaded).toLocaleDateString('vi-VN')}</td>
+                    <td style={{ padding: '8px 6px', color: '#64748b' }}>{fmtSize(d.size)}</td>
+                    <td style={{ padding: '8px 6px' }}>
+                      <button onClick={() => documentService.download(d.id, d.fileName).catch(err => toast.error(err.message || 'Không tải được'))}
+                        style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>⬇ Tải</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </>
   );

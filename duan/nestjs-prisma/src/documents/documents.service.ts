@@ -44,6 +44,17 @@ export class DocumentsService {
     });
   }
 
+  // Tổng hợp TẤT CẢ tài liệu (cho cán bộ/khoa/phòng) — kèm đề tài + người nộp
+  async findAll() {
+    return this.prisma.document.findMany({
+      include: {
+        uploader: { select: { fullName: true } },
+        topic: { select: { topicId: true, topicName: true, status: true } },
+      },
+      orderBy: { uploaded: 'desc' },
+    });
+  }
+
   // Xóa document (chỉ uploader hoặc Admin)
   async remove(id: string, user: any) {
     const doc = await this.prisma.document.findUnique({ where: { id } });
