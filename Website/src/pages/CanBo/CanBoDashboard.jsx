@@ -58,6 +58,7 @@ const CanBoDashboard = () => {
   const [councilTime, setCouncilTime] = useState('');
   const [score, setScore] = useState('');
   const [dateTime, setDateTime] = useState('');       // giờ bắt đầu / hạn chỉnh sửa
+  const [selectedIds, setSelectedIds] = useState([]); // chọn nhiều (thao tác hàng loạt)
 
   const load = useCallback(async () => {
     try {
@@ -106,6 +107,21 @@ const CanBoDashboard = () => {
     if (!window.confirm('Lùi đề tài về trạng thái liền trước?')) return;
     try { await topicService.undoTopics([id]); await after('Đã lùi 1 bước'); }
     catch (e) { toast.error(e.message || 'Không lùi được ở trạng thái này'); }
+  };
+
+  // ===== Thao tác hàng loạt (tab Điều hành) =====
+  const toggleSel = (id) => setSelectedIds(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+  const bulkStart = async () => {
+    const ids = shownTopics.filter(tp => selectedIds.includes(tp.id) && tp.status === 'WaitingToStart').map(tp => tp.id);
+    if (!ids.length) { toast.error('Chọn đề tài đang "Chờ bắt đầu" để bắt đầu hàng loạt'); return; }
+    try { await topicService.proceedTopics(ids); await after(`Đã bắt đầu ${ids.length} đề tài`); setSelectedIds([]); }
+    catch (e) { toast.error(e.message || 'Thất bại'); }
+  };
+  const bulkUndo = async () => {
+    if (!selectedIds.length) return;
+    if (!window.confirm(`Lùi ${selectedIds.length} đề tài về trạng thái liền trước?`)) return;
+    try { await topicService.undoTopics(selectedIds); await after(`Đã lùi ${selectedIds.length} đề tài`); setSelectedIds([]); }
+    catch (e) { toast.error(e.message || 'Có đề tài không lùi được ở trạng thái hiện tại'); }
   };
 
   const handleCreateBatch = async () => {
@@ -191,7 +207,7 @@ const CanBoDashboard = () => {
             isDept && { id: 'dot', label: 'Đợt đề tài', icon: CalendarDays },
             { id: 'baocao', label: 'Báo cáo thống kê', icon: BarChart3 },
           ].filter(Boolean).map(({ id, label, icon: Icon }) => (
-            <button key={id} onClick={() => setView(id)} style={{ display: 'flex', alignItems: 'center', gap: 10, background: view === id ? '#1e293b' : 'transparent', color: view === id ? '#fff' : '#cbd5e1', border: 'none', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600, textAlign: 'left' }}>
+            <button key={id} onClick={() => { setView(id); setSelectedIds([]); setOpenId(null); }} style={{ display: 'flex', alignItems: 'center', gap: 10, background: view === id ? '#1e293b' : 'transparent', color: view === id ? '#fff' : '#cbd5e1', border: 'none', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600, textAlign: 'left' }}>
               <Icon size={18} /> {label}
             </button>
           ))}
@@ -243,8 +259,31 @@ const CanBoDashboard = () => {
         {isListView && (<>
         <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>{view === 'duyet' ? 'Duyệt & Phân công' : 'Điều hành đề tài'}</h1>
         <p style={{ color: '#64748b', marginBottom: 24 }}>
-          {view === 'duyet' ? 'Duyệt hồ sơ (Đạt/Không đạt), cấp GVHD, duyệt yêu cầu báo cáo.' : 'Đặt thời gian, lập hội đồng, nhập điểm, lùi trạng thái.'}
+          {view === 'duyet' ? 'Duyệt hồ sơ (Đạt/Không đạt), cấp GVHD, duyệt yêu cầu báo cáo.' : 'Đặt thời gian, lập hội đồng, nhập điểm, lùi trạng thái. Tick chọn nhiều đề tài để thao tác hàng loạt.'}
         </p>
+
+        {/* Thanh thao tác hàng loạt — tab Điều hành */}
+        {view === 'dieuhanh' && shownTopics.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              <input type="checkbox"
+                checked={selectedIds.length > 0 && selectedIds.length === shownTopics.length}
+                ref={el => { if (el) el.indeterminate = selectedIds.length > 0 && selectedIds.length < shownTopics.length; }}
+                onChange={e => setSelectedIds(e.target.checked ? shownTopics.map(tp => tp.id) : [])} />
+              Chọn tất cả
+            </label>
+            <span style={{ fontSize: 13, color: '#64748b' }}>Đã chọn <b>{selectedIds.length}</b></span>
+            <div style={{ flex: 1 }} />
+            <button disabled={!selectedIds.length} onClick={bulkStart}
+              style={{ ...btn, fontSize: 13, background: selectedIds.length ? '#16a34a' : '#e2e8f0', color: selectedIds.length ? '#fff' : '#94a3b8', cursor: selectedIds.length ? 'pointer' : 'not-allowed' }}>
+              ▶ Bắt đầu đã chọn
+            </button>
+            <button disabled={!selectedIds.length} onClick={bulkUndo}
+              style={{ ...btn, fontSize: 13, background: selectedIds.length ? '#f1f5f9' : '#f8fafc', color: selectedIds.length ? '#475569' : '#cbd5e1', border: '1px solid #e2e8f0', cursor: selectedIds.length ? 'pointer' : 'not-allowed' }}>
+              ↩ Lùi bước đã chọn
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}>Đang tải...</div>
@@ -258,10 +297,18 @@ const CanBoDashboard = () => {
           return (
             <div key={tp.id} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 18, marginBottom: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }} onClick={() => openTopic(tp.id)}>
-                <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {view === 'dieuhanh' && (
+                    <input type="checkbox" checked={selectedIds.includes(tp.id)}
+                      onClick={e => e.stopPropagation()}
+                      onChange={() => toggleSel(tp.id)}
+                      style={{ width: 16, height: 16, cursor: 'pointer', flexShrink: 0 }} />
+                  )}
+                  <div>
                   <div style={{ fontWeight: 600, fontSize: 16 }}>{tp.topicName}</div>
                   <div style={{ color: '#64748b', fontSize: 13, marginTop: 2 }}>
                     {tp.topicId} · GVHD: {supervisor?.user?.fullName || '—'} · <span style={{ color: '#2563eb' }}>{t(`status.${tp.status}`, tp.status)}</span>
+                  </div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} onClick={(e) => e.stopPropagation()}>
