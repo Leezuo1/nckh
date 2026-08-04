@@ -329,10 +329,15 @@ const TopicDetailPage = () => {
       {/* Tiêu đề */}
       <h1 className="detail-title">{topic.topicName}</h1>
 
-      {/* Điểm nghiệm thu (nếu có) */}
-      {topic.score != null && (
+      {/* Điểm: CHỈ công bố khi đã Nghiệm thu (Done). Giai đoạn Chỉnh sửa vẫn giấu điểm với SV/GVHD. */}
+      {topic.score != null && topic.status === 'Done' && (
         <div style={{ display: 'inline-block', marginTop: 8, padding: '6px 14px', background: '#dcfce7', color: '#166534', borderRadius: 8, fontWeight: 700 }}>
           🎓 Điểm: {topic.score}
+        </div>
+      )}
+      {topic.status === 'Editing' && (
+        <div style={{ display: 'inline-block', marginTop: 8, padding: '6px 14px', background: '#fef3c7', color: '#92400e', borderRadius: 8, fontWeight: 600, fontSize: 13 }}>
+          🔒 Điểm sẽ được công bố sau khi nghiệm thu
         </div>
       )}
 

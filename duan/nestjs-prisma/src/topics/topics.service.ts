@@ -139,7 +139,15 @@ export class TopicsService {
 
   // ===== ĐỀ TÀI CỦA TÔI =====
 
-  async findMyTopics(userId: string) {
+  // Giai đoạn Chỉnh sửa: giấu điểm với SV/GVHD (chỉ cán bộ/khoa/phòng/trưởng khoa/admin thấy).
+  // Điểm chỉ công bố khi đã Nghiệm thu (Done).
+  private hideScoreForEditing<T extends { status: TopicStatus; score?: number | null }>(topics: T[], viewerRole?: string): T[] {
+    const canSeeScore = ['FacultyOfficer', 'DepartmentOfficer', 'FacultyDean', 'Admin'].includes(viewerRole || '');
+    if (canSeeScore) return topics;
+    return topics.map(t => (t.status === TopicStatus.Editing ? { ...t, score: null } : t));
+  }
+
+  async findMyTopics(userId: string, viewerRole?: string) {
     const topics = await this.prisma.topic.findMany({
       where: {
         OR: [
@@ -164,12 +172,13 @@ export class TopicsService {
       },
       orderBy: { deadline: 'asc' },
     });
-    return this.decorateTopics(topics);
+    const decorated = await this.decorateTopics(topics);
+    return this.hideScoreForEditing(decorated, viewerRole);
   }
 
   // ===== CHI TIẾT ĐỀ TÀI =====
 
-  async findOne(id: string) {
+  async findOne(id: string, viewerRole?: string) {
     const topic = await this.prisma.topic.findUnique({
       where: { id },
       include: {
@@ -210,7 +219,7 @@ export class TopicsService {
       }));
     }
     const [decorated] = await this.decorateTopics([topic]);
-    return decorated;
+    return this.hideScoreForEditing([decorated], viewerRole)[0];
   }
 
   // ===== ĐĂNG KÝ Ý TƯỞNG =====

@@ -36,13 +36,13 @@ export class TopicsController {
   // GET /api/topics/mine
   @Get('topics/mine')
   findMyTopics(@Request() req) {
-    return this.topicsService.findMyTopics(req.user.id);
+    return this.topicsService.findMyTopics(req.user.id, req.user.role);
   }
 
   // GET /api/topics/:id
   @Get('topics/:id')
-  findOne(@Param('id') id: string) {
-    return this.topicsService.findOne(id);
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.topicsService.findOne(id, req.user.role);
   }
 
   // ===== STATE MACHINE (Admin) — đặt TRƯỚC topics/:id để không bị nuốt route =====
