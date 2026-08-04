@@ -17,6 +17,7 @@ const RegisterIdeaPage = () => {
   const [ideaList, setIdeaList] = useState([])
   const [loading, setLoading] = useState(true)
   const [hasActiveTopic, setHasActiveTopic] = useState(false) //  Check đề tài active
+  const [hasOpenBatch, setHasOpenBatch] = useState(true) // Có đợt đề tài đang mở không
 
   const currentUser = authService.getCurrentUser()
   const isStudent = currentUser?.role === 'Student'
@@ -26,6 +27,13 @@ const RegisterIdeaPage = () => {
       .then(data => setIdeaList(data.map(mapIdeaToCard)))
       .catch(err => console.error('Loi tai y tuong:', err))
       .finally(() => setLoading(false))
+  }, [])
+
+  // Đăng ký chỉ mở khi có đợt đề tài đang mở
+  useEffect(() => {
+    topicService.getBatches()
+      .then(list => setHasOpenBatch((list || []).some(b => b.isOpen)))
+      .catch(() => setHasOpenBatch(false))
   }, [])
 
   //  Nếu là SV, check xem có đề tài đang active không
@@ -91,8 +99,12 @@ const RegisterIdeaPage = () => {
     setShowToast(true)
   }
 
-  //  SV có đề tài active → disable nút
-  const isRegisterDisabled = isStudent && hasActiveTopic
+  //  Disable nút đăng ký khi: chưa có đợt đề tài nào đang mở, HOẶC SV đang có đề tài active
+  const noOpenBatch = !hasOpenBatch
+  const isRegisterDisabled = noOpenBatch || (isStudent && hasActiveTopic)
+  const disabledReason = noOpenBatch
+    ? 'Chưa có đợt đề tài nào đang mở — vui lòng chờ Phòng NCKH phát động đợt'
+    : 'Bạn đang có đề tài chưa hoàn thành, không thể đăng ký mới'
 
   return (
     <div className="register-page">
@@ -114,9 +126,9 @@ const RegisterIdeaPage = () => {
         yearRef={yearRef}
         batchRef={batchRef}
       >
-        {/* Nút bị mờ + tooltip nếu SV đang có đề tài */}
+        {/* Nút bị mờ + tooltip nếu không đủ điều kiện đăng ký */}
         <div
-          title={isRegisterDisabled ? 'Bạn đang có đề tài chưa hoàn thành, không thể đăng ký mới' : ''}
+          title={isRegisterDisabled ? disabledReason : ''}
           style={{ display: 'inline-block' }}
         >
           <button
@@ -135,7 +147,7 @@ const RegisterIdeaPage = () => {
       </SearchBarGroup>
 
       <div className="white-box">
-        {/* Banner cảnh báo nếu SV đang có đề tài */}
+        {/* Banner cảnh báo lý do không đăng ký được */}
         {isRegisterDisabled && (
           <div style={{
             margin: '0 0 16px',
@@ -149,7 +161,9 @@ const RegisterIdeaPage = () => {
             alignItems: 'center',
             gap: 8,
           }}>
-            ⚠️ Bạn đang có đề tài chưa hoàn thành. Vui lòng hoàn thành đề tài hiện tại trước khi đăng ký mới.
+            ⚠️ {noOpenBatch
+              ? 'Chưa có đợt đề tài nào đang mở. Vui lòng chờ Phòng NCKH phát động đợt mới rồi đăng ký.'
+              : 'Bạn đang có đề tài chưa hoàn thành. Vui lòng hoàn thành đề tài hiện tại trước khi đăng ký mới.'}
           </div>
         )}
 
