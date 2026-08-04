@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { ClipboardCheck, LogOut, FileText, BarChart3 } from 'lucide-react';
+import { ClipboardCheck, LogOut, FileText, BarChart3, Settings2, CalendarDays } from 'lucide-react';
 import topicService from '../../services/topicService';
 import authService from '../../services/authService';
 import documentService from '../../services/documentService';
@@ -24,6 +24,11 @@ const ROLE_LABEL = {
 
 const btn = { padding: '8px 16px', borderRadius: 6, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14 };
 
+// Tab "Duyệt & Phân công": duyệt hồ sơ, cấp GVHD, duyệt yêu cầu báo cáo
+const DUYET_STATUSES = ['PendingFacultyReview', 'PendingDepartmentReview', 'PendingAssign', 'ReportPendingFaculty', 'ReportPendingDepartment'];
+// Tab "Điều hành đề tài": set thời gian, lập hội đồng, nhập điểm, lùi bước
+const DIEUHANH_STATUSES = ['WaitingToStart', 'InProgress', 'ReportApproved', 'Reporting', 'Editing', 'Done'];
+
 const CanBoDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -34,6 +39,7 @@ const CanBoDashboard = () => {
     : 'CB';
 
   const isDept = user?.role === 'DepartmentOfficer' || user?.role === 'Admin';
+  const isKhoa = user?.role === 'FacultyOfficer' || user?.role === 'Admin';
   const canReview = ['FacultyOfficer', 'DepartmentOfficer', 'Admin'].includes(user?.role);
   const isDean = user?.role === 'FacultyDean';
   const [view, setView] = useState(canReview ? 'duyet' : 'baocao'); // 'duyet' | 'baocao'
@@ -161,6 +167,9 @@ const CanBoDashboard = () => {
     } catch (e) { toast.error(e.message || 'Thao tác thất bại'); }
   };
 
+  const isListView = view === 'duyet' || view === 'dieuhanh';
+  const shownTopics = queue.filter(tp => (view === 'duyet' ? DUYET_STATUSES : DIEUHANH_STATUSES).includes(tp.status));
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f1f5f9' }}>
       {/* Sidebar riêng của khu cán bộ */}
@@ -176,14 +185,16 @@ const CanBoDashboard = () => {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {canReview && (
-            <button onClick={() => setView('duyet')} style={{ display: 'flex', alignItems: 'center', gap: 10, background: view === 'duyet' ? '#1e293b' : 'transparent', color: view === 'duyet' ? '#fff' : '#cbd5e1', border: 'none', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600, textAlign: 'left' }}>
-              <FileText size={18} /> Đề tài chờ duyệt
+          {[
+            canReview && { id: 'duyet', label: 'Duyệt & Phân công', icon: FileText },
+            isKhoa && { id: 'dieuhanh', label: 'Điều hành đề tài', icon: Settings2 },
+            isDept && { id: 'dot', label: 'Đợt đề tài', icon: CalendarDays },
+            { id: 'baocao', label: 'Báo cáo thống kê', icon: BarChart3 },
+          ].filter(Boolean).map(({ id, label, icon: Icon }) => (
+            <button key={id} onClick={() => setView(id)} style={{ display: 'flex', alignItems: 'center', gap: 10, background: view === id ? '#1e293b' : 'transparent', color: view === id ? '#fff' : '#cbd5e1', border: 'none', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600, textAlign: 'left' }}>
+              <Icon size={18} /> {label}
             </button>
-          )}
-          <button onClick={() => setView('baocao')} style={{ display: 'flex', alignItems: 'center', gap: 10, background: view === 'baocao' ? '#1e293b' : 'transparent', color: view === 'baocao' ? '#fff' : '#cbd5e1', border: 'none', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600, textAlign: 'left' }}>
-            <BarChart3 size={18} /> Báo cáo thống kê
-          </button>
+          ))}
         </div>
 
         <div style={{ marginTop: 'auto', borderTop: '1px solid #1e293b', paddingTop: 16 }}>
@@ -204,11 +215,11 @@ const CanBoDashboard = () => {
 
       {/* Nội dung */}
       <main style={{ flex: 1, padding: '28px 32px', maxWidth: 1000 }}>
-        {view === 'duyet' && (<>
-        {/* Quản lý đợt đề tài — chỉ Cán bộ Phòng / Admin */}
-        {isDept && (
-          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 18, marginBottom: 24 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 12px' }}>🗓 Đợt đề tài</h2>
+        {/* Tab Đợt đề tài (Cán bộ Phòng / Admin) */}
+        {view === 'dot' && (
+          <>
+          <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>Đợt đề tài</h1>
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 18 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: 8, alignItems: 'center', marginBottom: 12 }}>
               <input placeholder="Tên đợt (vd Đợt 1 - 2026)" value={batchForm.name} onChange={e => setBatchForm({ ...batchForm, name: e.target.value })} style={{ padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6 }} />
               <input placeholder="Năm" value={batchForm.year} onChange={e => setBatchForm({ ...batchForm, year: e.target.value })} style={{ padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6 }} />
@@ -226,18 +237,22 @@ const CanBoDashboard = () => {
               </div>
             ))}
           </div>
+          </>
         )}
 
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Đề tài chờ duyệt</h1>
-        <p style={{ color: '#64748b', marginBottom: 24 }}>Danh sách đề tài đang chờ <b>{roleLabel}</b> duyệt (Đạt / Không đạt kèm nhận xét).</p>
+        {isListView && (<>
+        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>{view === 'duyet' ? 'Duyệt & Phân công' : 'Điều hành đề tài'}</h1>
+        <p style={{ color: '#64748b', marginBottom: 24 }}>
+          {view === 'duyet' ? 'Duyệt hồ sơ (Đạt/Không đạt), cấp GVHD, duyệt yêu cầu báo cáo.' : 'Đặt thời gian, lập hội đồng, nhập điểm, lùi trạng thái.'}
+        </p>
 
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}>Đang tải...</div>
-        ) : queue.length === 0 ? (
+        ) : shownTopics.length === 0 ? (
           <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 48, textAlign: 'center', color: '#94a3b8' }}>
-            Không có đề tài nào chờ duyệt 🎉
+            Không có đề tài nào trong mục này 🎉
           </div>
-        ) : queue.map(tp => {
+        ) : shownTopics.map(tp => {
           const supervisor = (tp.topicParticipant || []).find(p => p.topicParticipantRole === 'Supervisor');
           const open = openId === tp.id;
           return (
