@@ -1519,6 +1519,19 @@ export class TopicsService {
   }
 
   async getBatches() {
+    // Tự động đóng các đợt đã qua hạn: cho mở hết trọn ngày deadline, sang ngày kế tiếp thì đóng.
+    const now = new Date();
+    const openBatches = await this.prisma.batch.findMany({ where: { isOpen: true } });
+    const expiredIds = openBatches
+      .filter(b => {
+        const cutoff = new Date(b.deadline);
+        cutoff.setDate(cutoff.getDate() + 1); // hết ngày hôm đó
+        return now >= cutoff;
+      })
+      .map(b => b.id);
+    if (expiredIds.length) {
+      await this.prisma.batch.updateMany({ where: { id: { in: expiredIds } }, data: { isOpen: false } });
+    }
     return this.prisma.batch.findMany({ orderBy: { created: 'desc' } });
   }
 
