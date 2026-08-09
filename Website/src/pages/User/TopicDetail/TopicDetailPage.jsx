@@ -10,6 +10,18 @@ import authService from '../../../services/authService'
 import { mapTopicStatus, mapUserRole } from '../../../utils/mappers'
 import './TopicDetailPage.css'
 
+// Định dạng thời gian còn lại (ms) → "X ngày Y giờ Z phút" / "Y giờ Z phút W giây"
+const fmtRemaining = (ms) => {
+  const s = Math.floor(ms / 1000)
+  const d = Math.floor(s / 86400)
+  const h = Math.floor((s % 86400) / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  if (d > 0) return `${d} ngày ${h} giờ ${m} phút`
+  if (h > 0) return `${h} giờ ${m} phút ${sec} giây`
+  return `${m} phút ${sec} giây`
+}
+
 const getStatusClass = (status) => {
   switch (status) {
     case 'Chờ xét duyệt':  return 'pending'
@@ -59,6 +71,7 @@ const TopicDetailPage = () => {
   const [savingProgress, setSavingProgress] = useState(false)
   const [srsProposal, setSrsProposal] = useState({})
   const [inviteMssv, setInviteMssv] = useState('')
+  const [nowTick, setNowTick] = useState(Date.now()) // đếm ngược thời gian chỉnh sửa
 
   const currentUser = authService.getCurrentUser()
   const isLeader = topic?.submitterId === currentUser?.id
@@ -88,6 +101,13 @@ const TopicDetailPage = () => {
   const isCouncilMember = councilMembers.some(m => m?.id === currentUser?.id)
   const canSeeCouncil = councilMembers.length > 0 &&
     (iAmGroupMember || isCouncilMember || ['FacultyOfficer', 'DepartmentOfficer', 'FacultyDean', 'Admin'].includes(currentUser?.role))
+
+  // Đếm ngược thời gian chỉnh sửa (chỉ chạy khi đang ở giai đoạn Chỉnh sửa)
+  useEffect(() => {
+    if (topic?.status !== 'Editing' || !topic?.editDeadline) return
+    const t = setInterval(() => setNowTick(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [topic?.status, topic?.editDeadline])
   const canSubmitProposal =
     (iAmSupervisor || myRole === 'Leader' || currentUser?.role === 'Admin') &&
     SUBMITTABLE.includes(topic?.status)
@@ -352,8 +372,23 @@ const TopicDetailPage = () => {
         </div>
       )}
       {topic.status === 'Editing' && (
-        <div style={{ display: 'inline-block', marginTop: 8, padding: '6px 14px', background: '#fef3c7', color: '#92400e', borderRadius: 8, fontWeight: 600, fontSize: 13 }}>
-          🔒 Điểm sẽ được công bố sau khi nghiệm thu
+        <div style={{ marginTop: 8 }}>
+          <div style={{ display: 'inline-block', padding: '6px 14px', background: '#fef3c7', color: '#92400e', borderRadius: 8, fontWeight: 600, fontSize: 13 }}>
+            🔒 Điểm sẽ được công bố sau khi nghiệm thu
+          </div>
+          {topic.editDeadline && (() => {
+            const remain = new Date(topic.editDeadline).getTime() - nowTick
+            return remain > 0 ? (
+              <div style={{ marginTop: 8, padding: '10px 14px', background: '#ecfeff', border: '1px solid #a5f3fc', borderRadius: 8, fontSize: 14 }}>
+                ⏳ <b>Thời gian chỉnh sửa còn lại:</b> <span style={{ fontWeight: 700, color: '#0891b2' }}>{fmtRemaining(remain)}</span>
+                <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Hạn chót: {new Date(topic.editDeadline).toLocaleString('vi-VN')} — hết giờ đề tài sẽ tự Nghiệm thu.</div>
+              </div>
+            ) : (
+              <div style={{ marginTop: 8, padding: '10px 14px', background: '#fee2e2', border: '1px solid #fecaca', borderRadius: 8, fontSize: 14, color: '#b91c1c', fontWeight: 600 }}>
+                ⏱ Đã hết thời gian chỉnh sửa — đề tài sẽ được nghiệm thu.
+              </div>
+            )
+          })()}
         </div>
       )}
 
