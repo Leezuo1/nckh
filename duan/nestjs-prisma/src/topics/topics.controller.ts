@@ -218,10 +218,16 @@ export class TopicsController {
     return this.topicsService.inviteStudent(id, mssv, req.user.id);
   }
 
-  // DELETE /api/topics/:id/invite/:userId — GVHD gỡ SV khỏi nhóm
+  // DELETE /api/topics/:id/invite/:userId — GVHD gỡ ngay / Chủ nhiệm gửi yêu cầu xóa
   @Delete('topics/:id/invite/:userId')
-  removeInvite(@Param('id') id: string, @Param('userId') userId: string, @Request() req) {
-    return this.topicsService.removeInvite(id, userId, req.user.id);
+  removeMember(@Param('id') id: string, @Param('userId') userId: string, @Request() req) {
+    return this.topicsService.removeMember(id, userId, req.user.id);
+  }
+
+  // PATCH /api/topics/:id/member/:userId/removal — GVHD duyệt/từ chối yêu cầu xóa thành viên
+  @Patch('topics/:id/member/:userId/removal')
+  respondMemberRemoval(@Param('id') id: string, @Param('userId') userId: string, @Body('approve') approve: boolean, @Request() req) {
+    return this.topicsService.respondMemberRemoval(id, userId, approve, req.user.id);
   }
 
   // PATCH /api/topics/:id/respond-invite — SV chấp nhận/từ chối lời mời

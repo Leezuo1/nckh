@@ -971,6 +971,23 @@ export class TopicsService {
     return topic;
   }
 
+  // Đề tài + kiểm tra người gọi là GVHD (Supervisor) HOẶC Chủ nhiệm (Leader) hoặc Admin
+  private async assertSupervisorOrLeader(topicId: string, userId: string) {
+    const topic = await this.prisma.topic.findUnique({
+      where: { id: topicId },
+      include: { topicParticipant: true },
+    });
+    if (!topic) throw new NotFoundException('Không tìm thấy đề tài');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const me = topic.topicParticipant.find(p => p.userId === userId);
+    const ok =
+      me?.topicParticipantRole === TopicParticipantRole.Supervisor ||
+      me?.topicParticipantRole === TopicParticipantRole.Leader ||
+      user?.role === UserRole.Admin;
+    if (!ok) throw new ForbiddenException('Chỉ Chủ nhiệm hoặc GVHD của nhóm mới được thao tác thành viên');
+    return { topic, me, user };
+  }
+
   // Đẩy thông báo cho toàn nhóm (Supervisor/Leader/Member)
   private async notifyGroup(topicId: string, title: string, message: string, link?: string) {
     const members = await this.prisma.topicParticipant.findMany({
@@ -1007,9 +1024,9 @@ export class TopicsService {
     return created;
   }
 
-  // FR-07: GVHD mời sinh viên theo MSSV
+  // FR-07: GVHD hoặc Chủ nhiệm mời sinh viên theo MSSV
   async inviteStudent(topicId: string, mssv: string, lecturerId: string) {
-    const topic = await this.assertSupervisor(topicId, lecturerId);
+    const { topic, me } = await this.assertSupervisorOrLeader(topicId, lecturerId);
     if (!mssv) throw new BadRequestException('Thiếu MSSV');
     const student = await this.prisma.user.findUnique({ where: { userId: mssv } });
     if (!student) throw new NotFoundException(`Không tìm thấy sinh viên có MSSV ${mssv}`);
@@ -1036,20 +1053,84 @@ export class TopicsService {
       { topicId, topicName: topic.topicName },
     );
     await this.activities.log(lecturerId, 'Mời SV vào nhóm', `${student.fullName} → "${topic.topicName}"`, topicId);
+    // Nếu người mời là Chủ nhiệm → báo cho GVHD biết nhóm vừa thêm thành viên
+    if (me?.topicParticipantRole === TopicParticipantRole.Leader) {
+      const sups = topic.topicParticipant.filter(p => p.topicParticipantRole === TopicParticipantRole.Supervisor && p.userId);
+      for (const s of sups) {
+        await this.notifications.create(s.userId!, 'Nhóm thêm thành viên', `Chủ nhiệm đề tài "${topic.topicName}" đã mời sinh viên ${student.fullName} (${mssv}).`, `/de-tai-cua-toi/${topicId}`);
+      }
+    }
     return created;
   }
 
-  // GVHD gỡ 1 SV (đã mời hoặc là thành viên) khỏi nhóm
-  async removeInvite(topicId: string, userId: string, lecturerId: string) {
-    await this.assertSupervisor(topicId, lecturerId);
-    await this.prisma.topicParticipant.deleteMany({
-      where: {
-        topicId,
-        userId,
-        topicParticipantRole: { in: [TopicParticipantRole.Invited, TopicParticipantRole.Member] },
-      },
+  // Gỡ thành viên khỏi nhóm.
+  // - GVHD (Supervisor) / Admin: gỡ ngay.
+  // - Chủ nhiệm (Leader): tạo yêu cầu xóa → thành viên chuyển PendingRemoval, gửi thông báo DUYỆT cho GVHD.
+  async removeMember(topicId: string, memberUserId: string, actorId: string) {
+    const { topic, me, user } = await this.assertSupervisorOrLeader(topicId, actorId);
+    const target = topic.topicParticipant.find(p => p.userId === memberUserId);
+    const removable: TopicParticipantRole[] = [TopicParticipantRole.Invited, TopicParticipantRole.Member, TopicParticipantRole.PendingRemoval];
+    if (!target || !removable.includes(target.topicParticipantRole)) {
+      throw new NotFoundException('Không tìm thấy thành viên trong nhóm');
+    }
+    const memberAcc = await this.prisma.user.findUnique({ where: { id: memberUserId }, select: { fullName: true } });
+    const isSupervisor = me?.topicParticipantRole === TopicParticipantRole.Supervisor || user?.role === UserRole.Admin;
+
+    // GVHD / Admin: xóa ngay
+    if (isSupervisor) {
+      await this.prisma.topicParticipant.deleteMany({ where: { topicId, userId: memberUserId, topicParticipantRole: { in: removable } } });
+      await this.notifyGroup(topicId, 'Thành viên bị gỡ khỏi nhóm', `${memberAcc?.fullName || 'Thành viên'} đã bị gỡ khỏi đề tài "${topic.topicName}".`, `/de-tai-cua-toi/${topicId}`);
+      await this.activities.log(actorId, 'Gỡ thành viên', `${memberAcc?.fullName} khỏi "${topic.topicName}"`, topicId);
+      return { removed: true };
+    }
+
+    // Chủ nhiệm: cần GVHD duyệt
+    if (target.topicParticipantRole === TopicParticipantRole.PendingRemoval) {
+      throw new BadRequestException('Yêu cầu xóa thành viên này đang chờ GVHD duyệt');
+    }
+    if (target.topicParticipantRole === TopicParticipantRole.Invited) {
+      // Mới chỉ là lời mời (SV chưa vào) → Chủ nhiệm tự huỷ lời mời, không cần duyệt
+      await this.prisma.topicParticipant.deleteMany({ where: { topicId, userId: memberUserId, topicParticipantRole: TopicParticipantRole.Invited } });
+      await this.activities.log(actorId, 'Huỷ lời mời', `${memberAcc?.fullName} khỏi "${topic.topicName}"`, topicId);
+      return { removed: true };
+    }
+    await this.prisma.topicParticipant.update({
+      where: { topicId_userId: { topicId, userId: memberUserId } },
+      data: { topicParticipantRole: TopicParticipantRole.PendingRemoval },
     });
-    return { success: true };
+    const sups = topic.topicParticipant.filter(p => p.topicParticipantRole === TopicParticipantRole.Supervisor && p.userId);
+    for (const s of sups) {
+      await this.notifications.create(s.userId!, 'Duyệt yêu cầu xóa thành viên', `Chủ nhiệm đề tài "${topic.topicName}" muốn xóa thành viên ${memberAcc?.fullName}. Vào chi tiết đề tài để Đồng ý / Từ chối.`, `/de-tai-cua-toi/${topicId}`, 'member_removal_request', { topicId, memberUserId });
+    }
+    await this.activities.log(actorId, 'Yêu cầu xóa thành viên', `${memberAcc?.fullName} — chờ GVHD duyệt`, topicId);
+    return { pending: true };
+  }
+
+  // GVHD duyệt / từ chối yêu cầu xóa thành viên do Chủ nhiệm gửi
+  async respondMemberRemoval(topicId: string, memberUserId: string, approve: boolean, actorId: string) {
+    const topic = await this.assertSupervisor(topicId, actorId); // chỉ GVHD/Admin
+    const target = await this.prisma.topicParticipant.findUnique({ where: { topicId_userId: { topicId, userId: memberUserId } } });
+    if (!target || target.topicParticipantRole !== TopicParticipantRole.PendingRemoval) {
+      throw new NotFoundException('Không có yêu cầu xóa thành viên nào đang chờ duyệt');
+    }
+    const memberAcc = await this.prisma.user.findUnique({ where: { id: memberUserId }, select: { fullName: true } });
+
+    if (approve) {
+      await this.prisma.topicParticipant.delete({ where: { topicId_userId: { topicId, userId: memberUserId } } });
+      await this.notifyGroup(topicId, 'Đã xóa thành viên', `GVHD đã duyệt: ${memberAcc?.fullName} bị xóa khỏi đề tài "${topic.topicName}".`, `/de-tai-cua-toi/${topicId}`);
+      await this.activities.log(actorId, 'Duyệt xóa thành viên', `${memberAcc?.fullName} khỏi "${topic.topicName}"`, topicId);
+      return { removed: true };
+    }
+    await this.prisma.topicParticipant.update({
+      where: { topicId_userId: { topicId, userId: memberUserId } },
+      data: { topicParticipantRole: TopicParticipantRole.Member },
+    });
+    const leader = topic.topicParticipant.find(p => p.topicParticipantRole === TopicParticipantRole.Leader && p.userId);
+    if (leader?.userId) {
+      await this.notifications.create(leader.userId, 'GVHD từ chối xóa thành viên', `GVHD không đồng ý xóa ${memberAcc?.fullName} khỏi đề tài "${topic.topicName}".`, `/de-tai-cua-toi/${topicId}`);
+    }
+    await this.activities.log(actorId, 'Từ chối xóa thành viên', `${memberAcc?.fullName} — giữ lại`, topicId);
+    return { removed: false };
   }
 
   // FR-08: SV chấp nhận / từ chối lời mời

@@ -124,9 +124,14 @@ const topicService = {
     return api.post(`/topics/${topicId}/invite`, { mssv });
   },
 
-  // GVHD gỡ SV khỏi nhóm
+  // GVHD gỡ ngay / Chủ nhiệm gửi yêu cầu xóa (backend tự phân biệt theo vai trò)
   removeInvite(topicId, userId) {
     return api.delete(`/topics/${topicId}/invite/${userId}`);
+  },
+
+  // GVHD duyệt/từ chối yêu cầu xóa thành viên do Chủ nhiệm gửi
+  respondMemberRemoval(topicId, userId, approve) {
+    return api.patch(`/topics/${topicId}/member/${userId}/removal`, { approve });
   },
 
   // SV chấp nhận/từ chối lời mời

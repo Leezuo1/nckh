@@ -77,8 +77,10 @@ const TopicDetailPage = () => {
   // ===== Cờ luồng SRS =====
   const isSrsFlow = topic && SRS_STATUSES.includes(topic.status)
   const iAmSupervisor = myRole === 'Supervisor'
+  const iAmLeader = myRole === 'Leader'
   const iAmInvited = myRole === 'Invited'
   const iAmGroupMember = ['Supervisor', 'Leader', 'Member'].includes(myRole)
+  const canManageMembers = iAmSupervisor || iAmLeader || currentUser?.role === 'Admin'
   const canSubmitProposal =
     (iAmSupervisor || myRole === 'Leader' || currentUser?.role === 'Admin') &&
     SUBMITTABLE.includes(topic?.status)
@@ -124,8 +126,15 @@ const TopicDetailPage = () => {
   }
   const handleRemoveMember = async (userId) => {
     try {
-      await topicService.removeInvite(id, userId)
-      toast.success('Đã gỡ khỏi nhóm')
+      const res = await topicService.removeInvite(id, userId)
+      toast.success(res?.pending ? 'Đã gửi yêu cầu xóa — chờ GVHD duyệt' : 'Đã gỡ khỏi nhóm')
+      await reloadTopic()
+    } catch (err) { /* toast tự hiện */ }
+  }
+  const handleRespondRemoval = async (userId, approve) => {
+    try {
+      await topicService.respondMemberRemoval(id, userId, approve)
+      toast.success(approve ? 'Đã xóa thành viên' : 'Đã giữ lại thành viên')
       await reloadTopic()
     } catch (err) { /* toast tự hiện */ }
   }
@@ -394,21 +403,42 @@ const TopicDetailPage = () => {
             </div>
           )}
 
-          {/* GVHD: mời sinh viên */}
-          {iAmSupervisor && (
+          {/* Chủ nhiệm & GVHD: quản lý thành viên nhóm */}
+          {canManageMembers && (
             <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 14 }}>
-              <h3 className="section-label" style={{ marginTop: 0 }}>👥 Mời sinh viên vào nhóm</h3>
+              <h3 className="section-label" style={{ marginTop: 0 }}>👥 Thành viên nhóm</h3>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                <input value={inviteMssv} onChange={e => setInviteMssv(e.target.value)} placeholder="Nhập MSSV để mời"
+                <input value={inviteMssv} onChange={e => setInviteMssv(e.target.value)} placeholder="Nhập MSSV để thêm thành viên"
                   style={{ flex: 1, padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14 }} />
-                <button onClick={handleInviteStudent} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#2563eb', color: '#fff', whiteSpace: 'nowrap' }}>Mời SV</button>
+                <button onClick={handleInviteStudent} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#2563eb', color: '#fff', whiteSpace: 'nowrap' }}>Thêm SV</button>
               </div>
-              {topic.topicParticipant?.filter(p => ['Invited', 'Member'].includes(p.topicParticipantRole)).map(p => (
-                <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderTop: '1px solid #f1f5f9', fontSize: 14 }}>
-                  <span>{p.user?.fullName} <span style={{ color: '#9ca3af', fontSize: 12 }}>({p.user?.userId})</span> — {p.topicParticipantRole === 'Invited' ? 'Đã mời (chờ)' : 'Thành viên'}</span>
-                  {p.userId && <button onClick={() => handleRemoveMember(p.userId)} style={{ padding: '2px 8px', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, background: '#fee2e2', color: '#b91c1c' }}>Gỡ</button>}
-                </div>
-              ))}
+              {!iAmSupervisor && (
+                <p style={{ margin: '0 0 8px', fontSize: 12, color: '#b45309' }}>Lưu ý: Chủ nhiệm xóa thành viên cần GVHD duyệt.</p>
+              )}
+              {topic.topicParticipant?.filter(p => ['Invited', 'Member', 'PendingRemoval'].includes(p.topicParticipantRole)).map(p => {
+                const roleLabel = p.topicParticipantRole === 'Invited' ? 'Đã mời (chờ SV chấp nhận)'
+                  : p.topicParticipantRole === 'PendingRemoval' ? 'Chờ GVHD duyệt xóa' : 'Thành viên'
+                const isPendingRemoval = p.topicParticipantRole === 'PendingRemoval'
+                return (
+                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderTop: '1px solid #f1f5f9', fontSize: 14, gap: 8 }}>
+                    <span>{p.user?.fullName} <span style={{ color: '#9ca3af', fontSize: 12 }}>({p.user?.userId})</span> — <span style={{ color: isPendingRemoval ? '#b45309' : '#6b7280' }}>{roleLabel}</span></span>
+                    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                      {isPendingRemoval ? (
+                        iAmSupervisor || currentUser?.role === 'Admin' ? (
+                          <>
+                            <button onClick={() => handleRespondRemoval(p.userId, true)} style={{ padding: '2px 10px', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, background: '#16a34a', color: '#fff' }}>Duyệt xóa</button>
+                            <button onClick={() => handleRespondRemoval(p.userId, false)} style={{ padding: '2px 10px', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, background: '#e2e8f0', color: '#334155' }}>Giữ lại</button>
+                          </>
+                        ) : (
+                          <span style={{ fontSize: 12, color: '#b45309' }}>Đang chờ GVHD duyệt</span>
+                        )
+                      ) : (
+                        p.userId && <button onClick={() => handleRemoveMember(p.userId)} style={{ padding: '2px 10px', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, background: '#fee2e2', color: '#b91c1c' }}>{iAmSupervisor ? 'Gỡ' : 'Yêu cầu xóa'}</button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
 

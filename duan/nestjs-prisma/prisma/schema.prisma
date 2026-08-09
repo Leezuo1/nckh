@@ -50,6 +50,7 @@ enum TopicParticipantRole {
   Member
   PendingMember //đang xin tham gia, chờ Leader duyệt (luồng ý tưởng cũ)
   Invited //GVHD mời, chờ SV chấp nhận (luồng SRS mới)
+  PendingRemoval //Chủ nhiệm yêu cầu xóa, chờ GVHD duyệt
 }
 enum ApprovalLevel {
   Supervisor // GVHD duyệt sơ bộ / trình Khoa
