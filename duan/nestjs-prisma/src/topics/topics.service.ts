@@ -247,6 +247,9 @@ export class TopicsService {
     // Bỏ durationMonths + members khỏi dữ liệu topic (members xử lý riêng bên dưới).
     const { durationMonths, members, ...rest } = dto;
 
+    // Lưu nguyên roster đã nhập (kể cả MSSV chưa có tài khoản) để luôn hiển thị được thành viên.
+    const roster = (members || []).filter(m => (m?.fullName || '').trim() || (m?.studentId || '').trim());
+
     const created = await this.prisma.topic.create({
       data: {
         ...rest,
@@ -255,6 +258,7 @@ export class TopicsService {
         isApproved: false,
         status: TopicStatus.PendingFacultyReview, // vào thẳng chuỗi duyệt Khoa → Phòng
         submitterId,
+        teamMembersInfo: roster,
         deadline: new Date(dto.deadline),
       },
     });
