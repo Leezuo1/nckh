@@ -81,6 +81,13 @@ const TopicDetailPage = () => {
   const iAmInvited = myRole === 'Invited'
   const iAmGroupMember = ['Supervisor', 'Leader', 'Member'].includes(myRole)
   const canManageMembers = iAmSupervisor || iAmLeader || currentUser?.role === 'Admin'
+
+  // Hội đồng báo cáo (sau khi Cán bộ Khoa lập hội đồng)
+  const reviewCouncil = (topic?.councils || []).find(c => c.type === 'Review') || (topic?.councils || [])[0]
+  const councilMembers = Array.isArray(reviewCouncil?.members) ? reviewCouncil.members : []
+  const isCouncilMember = councilMembers.some(m => m?.id === currentUser?.id)
+  const canSeeCouncil = councilMembers.length > 0 &&
+    (iAmGroupMember || isCouncilMember || ['FacultyOfficer', 'DepartmentOfficer', 'FacultyDean', 'Admin'].includes(currentUser?.role))
   const canSubmitProposal =
     (iAmSupervisor || myRole === 'Leader' || currentUser?.role === 'Admin') &&
     SUBMITTABLE.includes(topic?.status)
@@ -347,6 +354,27 @@ const TopicDetailPage = () => {
       {topic.status === 'Editing' && (
         <div style={{ display: 'inline-block', marginTop: 8, padding: '6px 14px', background: '#fef3c7', color: '#92400e', borderRadius: 8, fontWeight: 600, fontSize: 13 }}>
           🔒 Điểm sẽ được công bố sau khi nghiệm thu
+        </div>
+      )}
+
+      {/* Hội đồng báo cáo — nhóm & hội đồng đều thấy được thành viên hội đồng */}
+      {canSeeCouncil && (
+        <div style={{ marginTop: 12, padding: 14, background: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: 10 }}>
+          <h3 className="section-label" style={{ marginTop: 0 }}>⚖️ Hội đồng báo cáo</h3>
+          {reviewCouncil?.scheduledAt && (
+            <div style={{ fontSize: 14, marginBottom: 4 }}>🕒 Thời gian: {new Date(reviewCouncil.scheduledAt).toLocaleString('vi-VN')}</div>
+          )}
+          {reviewCouncil?.location && (
+            <div style={{ fontSize: 14, marginBottom: 8 }}>📍 Địa điểm: {reviewCouncil.location}</div>
+          )}
+          <div style={{ fontSize: 13, fontWeight: 600, margin: '6px 0 4px' }}>Thành viên hội đồng ({councilMembers.length}):</div>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            {councilMembers.map((m, i) => (
+              <li key={m?.id || i} style={{ fontSize: 14, padding: '2px 0' }}>
+                {m?.fullName || m?.name || 'Giảng viên'}{m?.id === currentUser?.id ? ' (bạn)' : ''}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
