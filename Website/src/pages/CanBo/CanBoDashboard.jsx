@@ -81,6 +81,11 @@ const CanBoDashboard = () => {
     try { await topicService.assignSupervisor(id, pickLec); await after('Đã cấp GVHD → Chờ bắt đầu'); setPickLec(''); }
     catch (e) { toast.error(e.message || 'Thất bại'); }
   };
+  // Duyệt/từ chối yêu cầu GVHD xin hướng dẫn
+  const doRespondAssign = async (id, accept) => {
+    try { await topicService.respondAssign(id, user?.id, accept); await after(accept ? 'Đã duyệt GVHD hướng dẫn → Chờ bắt đầu' : 'Đã từ chối yêu cầu của GVHD'); }
+    catch (e) { toast.error(e.message || 'Thất bại'); }
+  };
   const doStart = async (id, now) => {
     try {
       if (now) await topicService.proceedTopics([id]);
@@ -374,7 +379,22 @@ const CanBoDashboard = () => {
                       <button style={{ ...btn, background: '#dc2626', color: '#fff' }} onClick={() => doReview(tp.id, 'Rejected')}>Không đạt (trả về)</button>
                     </div>
                   )}
-                  {/* Cán bộ Khoa: cấp GVHD cho ý tưởng thiếu người */}
+                  {/* Yêu cầu GVHD xin hướng dẫn (chờ Cán bộ Khoa duyệt) */}
+                  {tp.status === 'PendingAssign' && (tp.topicParticipant || []).some(p => p.topicParticipantRole === 'PendingMember' && (p.user?.role === 'Lecturer' || p.user?.role === 'Admin')) && (
+                    <div style={{ marginBottom: 10, padding: 10, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>📩 GVHD xin hướng dẫn đề tài này:</div>
+                      {(tp.topicParticipant || []).filter(p => p.topicParticipantRole === 'PendingMember' && (p.user?.role === 'Lecturer' || p.user?.role === 'Admin')).map(p => (
+                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 14, padding: '4px 0' }}>
+                          <span>{p.user?.fullName} <span style={{ color: '#94a3b8', fontSize: 12 }}>({p.user?.userId})</span></span>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#16a34a', color: '#fff' }} onClick={() => doRespondAssign(tp.id, true)}>Duyệt</button>
+                            <button style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#fee2e2', color: '#b91c1c' }} onClick={() => doRespondAssign(tp.id, false)}>Từ chối</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Cán bộ Khoa: cấp GVHD trực tiếp cho ý tưởng thiếu người */}
                   {tp.status === 'PendingAssign' && (
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                       <select value={pickLec} onChange={e => setPickLec(e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cbd5e1' }}>

@@ -32,7 +32,7 @@ const IdeaDetailModal = ({ idea, onClose, onSuccess }) => {
     setLoading(true)
     try {
       await topicService.requestAssign(idea.id)
-      toast.success('Đã gửi yêu cầu! Chờ sinh viên duyệt.')
+      toast.success('Đã gửi yêu cầu hướng dẫn! Chờ Cán bộ Khoa duyệt.')
       onSuccess && onSuccess(idea.id)
       onClose()
     } catch {

@@ -393,24 +393,42 @@ export class TopicsService {
       data: { teamMembersInfo: students || [] },
     });
 
-    // Notification: thông báo submitter có người xin assign
-    // (dùng lại `requester` đã fetch ở phần kiểm tra "1 đề tài / SV" phía trên)
-    if (topic.submitterId) {
-      const isLecturer = requester?.role === UserRole.Lecturer || requester?.role === UserRole.Admin;
-      const action = isLecturer ? 'muốn hướng dẫn' : 'muốn tham gia';
+    // Định tuyến duyệt:
+    // - GVHD xin hướng dẫn ý tưởng của SV → gửi yêu cầu DUYỆT cho Cán bộ NCKH Khoa.
+    // - SV xin tham gia ý tưởng của GV → GV submitter duyệt (như cũ).
+    const isLecturerRequest =
+      (requester?.role === UserRole.Lecturer || requester?.role === UserRole.Admin) &&
+      topic.submitter?.role === UserRole.Student;
+
+    if (isLecturerRequest) {
+      const officers = await this.prisma.user.findMany({ where: { role: UserRole.FacultyOfficer } });
+      for (const off of officers) {
+        await this.notifications.create(
+          off.id,
+          'GVHD xin hướng dẫn đề tài',
+          `${requester?.fullName || 'Một giảng viên'} xin hướng dẫn đề tài "${topic.topicName}". Vào Khu cán bộ để duyệt.`,
+          `/can-bo`,
+          'supervisor_request',
+          { topicId, requesterId: userId, requesterName: requester?.fullName, topicName: topic.topicName },
+        );
+      }
+      // Báo SV submitter biết (chỉ để theo dõi)
+      if (topic.submitterId) {
+        await this.notifications.create(
+          topic.submitterId,
+          'Có GVHD xin hướng dẫn',
+          `${requester?.fullName || 'Một giảng viên'} xin hướng dẫn đề tài "${topic.topicName}" — đang chờ Cán bộ Khoa duyệt.`,
+          `/de-tai-cua-toi/${topicId}`,
+        );
+      }
+    } else if (topic.submitterId) {
       await this.notifications.create(
         topic.submitterId,
-        isLecturer ? 'Giảng viên xin hướng dẫn' : 'Có người xin tham gia đề tài',
-        `${requester?.fullName || 'Một người dùng'} ${action} đề tài "${topic.topicName}"`,
+        'Có người xin tham gia đề tài',
+        `${requester?.fullName || 'Một người dùng'} muốn tham gia đề tài "${topic.topicName}"`,
         `/de-tai-cua-toi/${topicId}`,
         'request_join',
-        {
-          topicId,
-          requesterId: userId,
-          requesterName: requester?.fullName,
-          topicName: topic.topicName,
-          students: students || [],
-        },
+        { topicId, requesterId: userId, requesterName: requester?.fullName, topicName: topic.topicName, students: students || [] },
       );
     }
     await this.activities.log(userId, 'Xin tham gia đề tài', `"${topic.topicName}"`, topicId);
@@ -429,16 +447,23 @@ export class TopicsService {
     });
     if (!topic) throw new NotFoundException('Không tìm thấy đề tài');
 
-    // Chỉ chủ nhiệm đề tài (người đăng ý tưởng) hoặc Admin mới được duyệt/từ chối
-    if (currentUser?.role !== UserRole.Admin && topic.submitterId !== currentUser?.id) {
-      throw new ForbiddenException('Bạn không có quyền duyệt yêu cầu tham gia đề tài này');
-    }
-
     // Lấy tất cả PendingMember của topic (cả nhóm) — kèm user để biết role
     const pendingMembers = await this.prisma.topicParticipant.findMany({
       where: { topicId, topicParticipantRole: TopicParticipantRole.PendingMember },
       include: { user: true },
     });
+
+    // Phân quyền duyệt:
+    // - Nếu là yêu cầu của GVHD (có PendingMember là Lecturer) → CÁN BỘ KHOA / Admin duyệt.
+    // - Nếu là SV xin tham gia (không có GVHD) → chủ nhiệm (submitter) / Admin duyệt.
+    const hasLecturerPending = pendingMembers.some(pm => pm.user?.role === UserRole.Lecturer || pm.user?.role === UserRole.Admin);
+    if (hasLecturerPending) {
+      if (currentUser?.role !== UserRole.FacultyOfficer && currentUser?.role !== UserRole.Admin) {
+        throw new ForbiddenException('Chỉ Cán bộ NCKH Khoa (hoặc Admin) mới được duyệt yêu cầu hướng dẫn của GVHD');
+      }
+    } else if (currentUser?.role !== UserRole.Admin && topic.submitterId !== currentUser?.id) {
+      throw new ForbiddenException('Bạn không có quyền duyệt yêu cầu tham gia đề tài này');
+    }
 
     if (accept) {
       // 1. Gán role theo user.role:
@@ -499,6 +524,8 @@ export class TopicsService {
           `/de-tai-cua-toi/${topicId}`,
         );
       }
+      // Báo cả nhóm (gồm chủ nhiệm) đề tài đã đủ người → Chờ bắt đầu
+      await this.notifyGroup(topicId, 'Đề tài đã đủ người', `Đề tài "${topic.topicName}" đã được duyệt phân công → Chờ bắt đầu.`, `/de-tai-cua-toi/${topicId}`);
 
       if (topic.submitterId) {
         await this.activities.log(
