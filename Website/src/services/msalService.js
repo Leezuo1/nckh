@@ -17,6 +17,9 @@ export const msalInstance = clientId
         clientId,
         authority: `https://login.microsoftonline.com/${tenantId}`,
         redirectUri,
+        // Xử lý phản hồi NGAY tại trang redirect, không nhảy về trang gọi login
+        // (tránh mất token khi bounce về /login).
+        navigateToLoginRequestUrl: false,
       },
       cache: { cacheLocation: 'localStorage' },
     })
