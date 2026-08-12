@@ -6,7 +6,7 @@ import anhNenVlut from '../../../assets/Images/backgroundVLU.jpg';
 import logoVlut from '../../../assets/Images/Logo Đại Học Văn Lang H.png';
 import logoMicrosoft from '../../../assets/Images/logomicrosoft.png';
 import authService from '../../../services/authService';
-import { loginMicrosoftPopup, isMicrosoftConfigured } from '../../../services/msalService';
+import { loginMicrosoftRedirect, isMicrosoftConfigured } from '../../../services/msalService';
 
 const GiaoDienDangNhap = () => {
   const navigate = useNavigate();
@@ -22,6 +22,12 @@ const GiaoDienDangNhap = () => {
       sessionStorage.removeItem('show_login_toast');
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
+    }
+    // Lỗi đăng nhập Microsoft (bước đổi token ở backend) — do main.jsx set khi redirect về
+    const msErr = sessionStorage.getItem('ms_login_error');
+    if (msErr) {
+      sessionStorage.removeItem('ms_login_error');
+      setErrorMsg(msErr);
     }
   }, []);
 
@@ -68,20 +74,11 @@ const GiaoDienDangNhap = () => {
     }
     setIsLoading(true);
     try {
-      const accessToken = await loginMicrosoftPopup();
-      // authService.loginWithMicrosoft tự lưu token + user_info + is_logged_in
-      await authService.loginWithMicrosoft(accessToken);
-      window.dispatchEvent(new Event('auth:login')); // báo sidebar/header cập nhật trạng thái
-      const redirectTo = sessionStorage.getItem('redirect_after_login') || '/';
-      sessionStorage.removeItem('redirect_after_login');
-      window.location.href = redirectTo;
+      // Chuyển cả trang sang Microsoft; sau khi xác thực sẽ quay lại và main.jsx hoàn tất đăng nhập.
+      await loginMicrosoftRedirect();
+      // (Không tới đây vì trang đã điều hướng đi)
     } catch (err) {
-      const msg = err?.message || 'Đăng nhập Microsoft thất bại';
-      // Bỏ qua khi người dùng tự đóng popup / huỷ
-      if (!/cancel|popup|interaction_in_progress|user_cancelled/i.test(msg)) {
-        setErrorMsg(msg);
-      }
-    } finally {
+      setErrorMsg(err?.message || 'Không mở được đăng nhập Microsoft');
       setIsLoading(false);
     }
   };
