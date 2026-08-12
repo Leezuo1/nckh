@@ -18,23 +18,43 @@ function renderApp() {
   )
 }
 
-if (isMicrosoftConfigured && hasMsalAuthResponse()) {
-  // Trang vừa quay lại từ Microsoft (đăng nhập bằng redirect).
-  // Xử lý code → lấy access token → đổi lấy phiên đăng nhập ở backend → về trang chủ đã đăng nhập.
-  const root = document.getElementById('root')
-  if (root) root.innerHTML = '<div style="font-family:sans-serif;padding:48px;text-align:center;color:#555">Đang xử lý đăng nhập Microsoft…</div>'
-  completeMicrosoftRedirect()
-    .then(async (accessToken) => {
-      if (!accessToken) { renderApp(); return }
+function msError(err) {
+  try { sessionStorage.setItem('ms_login_error', err?.response?.data?.message || err?.message || 'Đăng nhập Microsoft thất bại') } catch { /* ignore */ }
+}
+
+async function boot() {
+  if (!isMicrosoftConfigured) { renderApp(); return }
+
+  const returning = hasMsalAuthResponse()
+  if (returning) {
+    const root = document.getElementById('root')
+    if (root) root.innerHTML = '<div style="font-family:sans-serif;padding:48px;text-align:center;color:#555">Đang xử lý đăng nhập Microsoft…</div>'
+  }
+
+  // LUÔN gọi handleRedirectPromise mỗi lần load: vừa xử lý phản hồi redirect (nếu có),
+  // vừa DỌN cờ interaction_in_progress bị kẹt từ lần trước.
+  let accessToken = null
+  try {
+    accessToken = await completeMicrosoftRedirect()
+  } catch (err) {
+    if (returning) { msError(err); window.location.replace('/login'); return }
+    // Load bình thường: bỏ qua lỗi MSAL (đã dọn cờ), cứ render app
+  }
+
+  if (accessToken) {
+    try {
       await authService.loginWithMicrosoft(accessToken)
       window.dispatchEvent(new Event('auth:login'))
       window.location.replace('/')
-    })
-    .catch((err) => {
-      // Lỗi bước đổi token ở backend (hoặc MSAL) → quay lại login kèm thông báo
-      try { sessionStorage.setItem('ms_login_error', err?.response?.data?.message || err?.message || 'Đăng nhập Microsoft thất bại') } catch { /* ignore */ }
+      return
+    } catch (err) {
+      msError(err)
       window.location.replace('/login')
-    })
-} else {
+      return
+    }
+  }
+
   renderApp()
 }
+
+boot()
