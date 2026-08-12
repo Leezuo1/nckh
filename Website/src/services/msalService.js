@@ -24,12 +24,11 @@ const msalInstance = clientId
 
 let initialized = false
 
-// Đang chạy BÊN TRONG popup đăng nhập Microsoft? (được mở bởi window.open + có code/error trên hash)
-export function isMsalRedirectPopup() {
-  try {
-    return !!window.opener && window.opener !== window &&
-      (window.location.hash.includes('code=') || window.location.hash.includes('error='))
-  } catch { return false }
+// URL hiện tại có phải là phản hồi đăng nhập Microsoft không? (MSAL trả code/token/error trên hash)
+// App dùng BrowserRouter (route theo path), nên hash không bao giờ chứa 'code='/'token=' khi dùng bình thường.
+export function hasMsalAuthResponse() {
+  const h = window.location.hash || ''
+  return h.includes('code=') || h.includes('error=') || h.includes('access_token=') || h.includes('id_token=')
 }
 
 // Gọi khi app load trong popup: để MSAL xử lý phản hồi rồi tự đóng popup, gửi token về cửa sổ chính.
