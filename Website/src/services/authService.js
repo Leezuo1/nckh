@@ -17,6 +17,13 @@ const authService = {
   },
 
   // Đăng nhập bằng Microsoft access token (từ MSAL.js)
+  // Đăng nhập Microsoft bằng authorization code (backend đổi code->token bằng ClientSecret)
+  async loginWithMicrosoftCode(code, redirectUri) {
+    const data = await api.post('/auth/microsoft/code', { code, redirectUri });
+    saveSession(data);
+    return data;
+  },
+
   async loginWithMicrosoft(accessToken) {
     const data = await api.post('/auth/microsoft', { accessToken });
     saveSession(data);

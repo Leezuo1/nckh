@@ -32,6 +32,39 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  // Đăng nhập Microsoft kiểu CONFIDENTIAL (backend): FE gửi authorization code,
+  // backend đổi code -> access token bằng ClientSecret (chạy được với redirect loại "Web",
+  // không cần đăng ký SPA). Rồi tái dùng loginWithMicrosoft() để lấy hồ sơ + tạo phiên.
+  async loginWithMicrosoftCode(code: string, redirectUri: string) {
+    if (!code) throw new UnauthorizedException('Thiếu mã xác thực Microsoft');
+    const tenant = process.env.MS_TENANT_ID || 'organizations';
+    const clientId = process.env.MS_CLIENT_ID || '';
+    const clientSecret = process.env.MS_CLIENT_SECRET || '';
+    if (!clientId || !clientSecret) {
+      throw new UnauthorizedException('Server chưa cấu hình Microsoft (MS_CLIENT_ID/MS_CLIENT_SECRET)');
+    }
+
+    const body = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code',
+      scope: 'openid profile email User.Read',
+    });
+
+    const res = await fetch(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    });
+    const tok = await res.json() as any;
+    if (!res.ok || !tok.access_token) {
+      throw new UnauthorizedException(tok.error_description || 'Không đổi được mã Microsoft sang token');
+    }
+    return this.loginWithMicrosoft(tok.access_token);
+  }
+
   async loginWithMicrosoft(accessToken: string) {
     const response = await fetch('https://graph.microsoft.com/v1.0/me', {
       headers: { Authorization: `Bearer ${accessToken}` },

@@ -16,6 +16,13 @@ export class AuthController {
     return this.authService.loginWithMicrosoft(dto.accessToken);
   }
 
+  // POST /api/auth/microsoft/code — Frontend gửi authorization code, backend đổi ra token
+  // bằng ClientSecret (confidential flow, chạy với redirect loại "Web").
+  @Post('microsoft/code')
+  async loginWithMicrosoftCode(@Body() body: { code: string; redirectUri: string }) {
+    return this.authService.loginWithMicrosoftCode(body.code, body.redirectUri);
+  }
+
   // POST /api/auth/login — Đăng nhập bằng mã số (MSSV/MSGV) + mật khẩu nội bộ
   @Post('login')
   async login(@Body() dto: CredentialsLoginDto) {
