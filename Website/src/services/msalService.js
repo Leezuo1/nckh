@@ -24,6 +24,21 @@ const msalInstance = clientId
 
 let initialized = false
 
+// Đang chạy BÊN TRONG popup đăng nhập Microsoft? (được mở bởi window.open + có code/error trên hash)
+export function isMsalRedirectPopup() {
+  try {
+    return !!window.opener && window.opener !== window &&
+      (window.location.hash.includes('code=') || window.location.hash.includes('error='))
+  } catch { return false }
+}
+
+// Gọi khi app load trong popup: để MSAL xử lý phản hồi rồi tự đóng popup, gửi token về cửa sổ chính.
+export async function handleMsalRedirect() {
+  if (!msalInstance) return
+  if (!initialized) { await msalInstance.initialize(); initialized = true }
+  try { await msalInstance.handleRedirectPromise() } catch { /* ignore */ }
+}
+
 // Mở popup đăng nhập Microsoft 365, trả về access token (scope User.Read cho Microsoft Graph).
 // Backend dùng token này gọi Graph /me để lấy email → xác thực.
 export async function loginMicrosoftPopup() {
