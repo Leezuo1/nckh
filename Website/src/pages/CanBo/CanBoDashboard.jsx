@@ -49,7 +49,6 @@ const CanBoDashboard = () => {
   const [proposal, setProposal] = useState({});
   const [docs, setDocs] = useState([]);
   const [comment, setComment] = useState('');
-  const [outcome, setOutcome] = useState('Extend'); // Gia hạn/Làm lại/Huỷ khi nghiệm thu Không đạt
   const [batches, setBatches] = useState([]);
   const [batchForm, setBatchForm] = useState({ name: '', year: String(new Date().getFullYear()), deadline: '', description: '' });
   const [lecturers, setLecturers] = useState([]);
@@ -181,26 +180,6 @@ const CanBoDashboard = () => {
       await topicService.review(id, decision, comment.trim() || undefined);
       await after(decision === 'Approved' ? 'Đã duyệt Đạt' : 'Đã trả về chỉnh sửa');
     } catch (e) { toast.error(e.message || 'Duyệt thất bại'); }
-  };
-
-  // Hội đồng đề cương: Đạt → giao đề tài; Không đạt → làm lại
-  const doProposalCouncil = async (id, decision) => {
-    if (decision === 'Rejected' && !comment.trim()) { toast.error('Nhập nhận xét khi không đạt'); return; }
-    try {
-      await topicService.councilProposal(id, decision, comment.trim() || undefined);
-      await after(decision === 'Approved' ? 'Đạt — đã giao đề tài' : 'Không đạt — làm lại đề cương');
-    } catch (e) { toast.error(e.message || 'Thao tác thất bại'); }
-  };
-
-  // Hội đồng phản biện/nghiệm thu
-  const doReviewCouncil = async (id, decision) => {
-    if (decision === 'Rejected' && !comment.trim()) { toast.error('Nhập nhận xét khi không đạt'); return; }
-    try {
-      await topicService.councilReview(id, decision, decision === 'Rejected' ? outcome : undefined, comment.trim() || undefined);
-      const label = decision === 'Approved' ? 'Đã nghiệm thu'
-        : outcome === 'Extend' ? 'Đã gia hạn' : outcome === 'Redo' ? 'Cho làm lại đề cương' : 'Đã huỷ đề tài';
-      await after(label);
-    } catch (e) { toast.error(e.message || 'Thao tác thất bại'); }
   };
 
   const isListView = view === 'duyet' || view === 'dieuhanh';
