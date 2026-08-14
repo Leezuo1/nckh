@@ -94,6 +94,9 @@ const TopicDetailPage = () => {
   const iAmInvited = myRole === 'Invited'
   const iAmGroupMember = ['Supervisor', 'Leader', 'Member'].includes(myRole)
   const canManageMembers = iAmSupervisor || iAmLeader || currentUser?.role === 'Admin'
+  // Chủ nhiệm & GVHD được sửa thuyết minh ở mọi giai đoạn (trừ khi đề tài bị khoá/kết thúc)
+  const canEditProposal = (iAmSupervisor || iAmLeader || currentUser?.role === 'Admin') &&
+    !['Reporting', 'Done', 'Cancelled'].includes(topic?.status)
 
   // Hội đồng báo cáo (sau khi Cán bộ Khoa lập hội đồng)
   const reviewCouncil = (topic?.councils || []).find(c => c.type === 'Review') || (topic?.councils || [])[0]
@@ -505,29 +508,6 @@ const TopicDetailPage = () => {
             </div>
           )}
 
-          {/* Nhóm: soạn thuyết minh + nộp */}
-          {iAmGroupMember && (
-            <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 14 }}>
-              <h3 className="section-label" style={{ marginTop: 0 }}>📝 Thuyết minh đề tài</h3>
-              {PROPOSAL_FIELDS.map(f => (
-                <div key={f.key} style={{ marginBottom: 10 }}>
-                  <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>{f.label}</label>
-                  <textarea value={srsProposal[f.key] || ''} onChange={e => setSrsProposal({ ...srsProposal, [f.key]: e.target.value })}
-                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, minHeight: 56, resize: 'vertical', boxSizing: 'border-box' }} />
-                </div>
-              ))}
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button onClick={handleSaveProposal} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#e5e7eb', color: '#111' }}>Lưu thuyết minh</button>
-                <button onClick={handleExportWord} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#e0f2fe', color: '#075985' }}>⬇ Xuất Word</button>
-                {canSubmitProposal && (
-                  <button onClick={handleSubmitProposal} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#16a34a', color: '#fff' }}>
-                    {topic.status === 'Draft' ? 'Duyệt sơ bộ & trình Khoa' : 'Nộp lại'}
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Lịch sử duyệt (mọi thành viên nhóm) */}
           {iAmGroupMember && (
             <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10 }}>
@@ -545,6 +525,29 @@ const TopicDetailPage = () => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Thuyết minh đề tài — Chủ nhiệm & GVHD chỉnh sửa (mọi giai đoạn, trừ khi khoá) */}
+      {canEditProposal && (
+        <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, marginTop: 16 }}>
+          <h3 className="section-label" style={{ marginTop: 0 }}>📝 Thuyết minh đề tài</h3>
+          {PROPOSAL_FIELDS.map(f => (
+            <div key={f.key} style={{ marginBottom: 10 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>{f.label}</label>
+              <textarea value={srsProposal[f.key] || ''} onChange={e => setSrsProposal({ ...srsProposal, [f.key]: e.target.value })}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, minHeight: 56, resize: 'vertical', boxSizing: 'border-box' }} />
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button onClick={handleSaveProposal} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#e5e7eb', color: '#111' }}>Lưu thuyết minh</button>
+            <button onClick={handleExportWord} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#e0f2fe', color: '#075985' }}>⬇ Xuất Word</button>
+            {canSubmitProposal && (
+              <button onClick={handleSubmitProposal} style={{ padding: '8px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, background: '#16a34a', color: '#fff' }}>
+                {topic.status === 'Draft' ? 'Duyệt sơ bộ & trình Khoa' : 'Nộp lại'}
+              </button>
+            )}
+          </div>
         </div>
       )}
 
