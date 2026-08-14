@@ -81,13 +81,26 @@ export class AuthService {
       throw new UnauthorizedException('Không lấy được thông tin tài khoản Microsoft');
     }
 
+    // Vai trò suy ra từ email VLU: dạng "ten.MSSV" (SV) hoặc "ten.ho" (GV).
+    // Có dãy số dài (MSSV, >=6 chữ số) = Sinh viên; không có = Giảng viên; nằm trong ADMIN_VLU_IDS = Admin.
+    const localPart = outlook.split('@')[0];
+    const mssv = (localPart.match(/\d{6,}/) || [])[0];
+    const adminIds = (process.env.ADMIN_VLU_IDS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const derivedRole = (adminIds.includes(localPart) || (mssv && adminIds.includes(mssv)))
+      ? 'Admin'
+      : mssv
+        ? 'Student'
+        : 'Lecturer';
+
     let user = await this.prisma.user.findUnique({ where: { outlook } });
     let isNewUser = false;
 
     // Chưa có → tự tạo (toàn bộ SV/GV trường dùng Microsoft 365, không bắt Admin đăng ký sẵn).
     if (!user) {
       // (Tuỳ chọn) chỉ cho phép email thuộc domain trường — set MS_ALLOWED_DOMAINS trong .env
-      // vd: MS_ALLOWED_DOMAINS="vanlanguni.vn,vlu.edu.vn". Để trống = cho mọi domain.
       const allowedDomains = (process.env.MS_ALLOWED_DOMAINS || '')
         .split(',')
         .map((d) => d.trim().toLowerCase())
@@ -97,20 +110,6 @@ export class AuthService {
         throw new UnauthorizedException('Email không thuộc tổ chức được phép đăng nhập');
       }
 
-      const localPart = outlook.split('@')[0];
-      // Email VLU dạng "ten.MSSV" (SV) hoặc "ten.ho" (GV). Có dãy số dài (MSSV) = SV, không có = GV.
-      const mssv = (localPart.match(/\d{6,}/) || [])[0];
-      const isStudent = !!mssv;
-      const adminIds = (process.env.ADMIN_VLU_IDS || '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-      const role = (adminIds.includes(localPart) || (mssv && adminIds.includes(mssv)))
-        ? 'Admin'
-        : isStudent
-          ? 'Student'
-          : 'Lecturer';
-
       user = await this.prisma.user.create({
         data: {
           userId: localPart,
@@ -119,11 +118,15 @@ export class AuthService {
           gender: 'Male', // placeholder — user cập nhật sau
           phone: `ms_${localPart}`, // placeholder tránh trùng unique
           outlook,
-          role,
+          role: derivedRole,
           status: 'Active',
         },
       });
       isNewUser = true;
+    } else if (['Student', 'Lecturer'].includes(user.role) && user.role !== derivedRole) {
+      // Tài khoản đã có: tự sửa nhầm lẫn Sinh viên↔Giảng viên theo email
+      // (KHÔNG đụng các role cán bộ/khoa/phòng/admin do người khác gán tay).
+      user = await this.prisma.user.update({ where: { id: user.id }, data: { role: derivedRole } });
     }
 
     if (user.status === 'Inactive') {
