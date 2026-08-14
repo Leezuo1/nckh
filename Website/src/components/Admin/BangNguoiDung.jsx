@@ -53,9 +53,8 @@ const BangNguoiDung = ({
       await userService.setPassword(editingUser.id, newPassword);
       toast.success(`Đã đặt lại mật khẩu cho ${editingUser.ten}`);
       setNewPassword('');
-    } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || 'Đặt lại mật khẩu thất bại');
-    } finally { setSavingPw(false); }
+    } catch { /* lỗi đã được interceptor axios báo toast, không toast lại tránh trùng */ }
+    finally { setSavingPw(false); }
   };
 
   const openDelete = (item) => {
