@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Pencil, Trash2, X } from 'lucide-react';
 import PopupxoaAdmin from './PopupxoaAdmin';
+import userService from '../../services/userService';
 import './BangNguoiDung.css';
 
 const ROLES = [
@@ -22,21 +24,38 @@ const BangNguoiDung = ({
 }) => {
   const [editingUser, setEditingUser] = useState(null);
   const [selectedRole, setSelectedRole] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [savingPw, setSavingPw] = useState(false);
   const [deletePopup, setDeletePopup] = useState({ hienThi: false, id: null, ten: '' });
 
   const openEdit = (item) => {
     setEditingUser(item);
     setSelectedRole(item.vaiTroRaw || 'Student');
+    setNewPassword('');
   };
 
   const closeEdit = () => {
     setEditingUser(null);
     setSelectedRole('');
+    setNewPassword('');
   };
 
   const handleSave = async () => {
     if (handleEditRole) await handleEditRole(editingUser.id, selectedRole);
     closeEdit();
+  };
+
+  // Admin đặt lại mật khẩu cho user
+  const handleResetPassword = async () => {
+    if (newPassword.length < 6) { toast.error('Mật khẩu phải có ít nhất 6 ký tự'); return; }
+    setSavingPw(true);
+    try {
+      await userService.setPassword(editingUser.id, newPassword);
+      toast.success(`Đã đặt lại mật khẩu cho ${editingUser.ten}`);
+      setNewPassword('');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || 'Đặt lại mật khẩu thất bại');
+    } finally { setSavingPw(false); }
   };
 
   const openDelete = (item) => {
@@ -130,7 +149,7 @@ const BangNguoiDung = ({
         <div className="popup-overlay" onClick={closeEdit}>
           <div className="popup-box" onClick={e => e.stopPropagation()}>
             <div className="popup-header">
-              <h3>Chỉnh sửa vai trò</h3>
+              <h3>Chỉnh sửa người dùng</h3>
               <button className="popup-close" onClick={closeEdit}><X size={18} /></button>
             </div>
             <div className="popup-body">
@@ -149,6 +168,25 @@ const BangNguoiDung = ({
                     {r.label}
                   </label>
                 ))}
+              </div>
+
+              {/* Đặt lại mật khẩu (Admin) */}
+              <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #e5e7eb' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>🔑 Đặt lại mật khẩu</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    type="text"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    placeholder="Mật khẩu mới (≥ 6 ký tự)"
+                    style={{ flex: 1, padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14 }}
+                  />
+                  <button onClick={handleResetPassword} disabled={savingPw || newPassword.length < 6}
+                    style={{ padding: '8px 14px', border: 'none', borderRadius: 6, fontWeight: 600, whiteSpace: 'nowrap', cursor: (savingPw || newPassword.length < 6) ? 'not-allowed' : 'pointer', background: (newPassword.length < 6) ? '#e5e7eb' : '#2563eb', color: (newPassword.length < 6) ? '#94a3b8' : '#fff' }}>
+                    {savingPw ? 'Đang lưu...' : 'Đặt lại'}
+                  </button>
+                </div>
+                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Áp dụng cho đăng nhập bằng mật khẩu (MSSV/MSGV). Tài khoản Microsoft không dùng mật khẩu này.</div>
               </div>
             </div>
             <div className="popup-footer">

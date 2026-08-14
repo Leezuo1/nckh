@@ -38,6 +38,11 @@ const userService = {
     return api.delete(`/users/${id}`);
   },
 
+  // Admin đặt lại mật khẩu cho 1 user
+  setPassword(id, password) {
+    return api.patch(`/users/${id}/password`, { password });
+  },
+
   // User tự update profile của mình (không cần Admin)
   updateMyProfile(data) {
     return api.patch('/profile/me', data);
