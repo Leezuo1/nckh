@@ -98,17 +98,18 @@ export class AuthService {
       }
 
       const localPart = outlook.split('@')[0];
-      // mã bắt đầu bằng số = SV, còn lại = GV; nằm trong ADMIN_VLU_IDS → Admin
-      const isLecturer = !/^\d/.test(localPart);
+      // Email VLU dạng "ten.MSSV" (SV) hoặc "ten.ho" (GV). Có dãy số dài (MSSV) = SV, không có = GV.
+      const mssv = (localPart.match(/\d{6,}/) || [])[0];
+      const isStudent = !!mssv;
       const adminIds = (process.env.ADMIN_VLU_IDS || '')
         .split(',')
         .map((s) => s.trim())
         .filter(Boolean);
-      const role = adminIds.includes(localPart)
+      const role = (adminIds.includes(localPart) || (mssv && adminIds.includes(mssv)))
         ? 'Admin'
-        : isLecturer
-          ? 'Lecturer'
-          : 'Student';
+        : isStudent
+          ? 'Student'
+          : 'Lecturer';
 
       user = await this.prisma.user.create({
         data: {
