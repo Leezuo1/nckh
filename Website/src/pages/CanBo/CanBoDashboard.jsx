@@ -125,10 +125,14 @@ const CanBoDashboard = () => {
   // ===== Thao tác hàng loạt (tab Điều hành) =====
   const toggleSel = (id) => setSelectedIds(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
   const bulkStart = async () => {
-    const ids = shownTopics.filter(tp => selectedIds.includes(tp.id) && tp.status === 'WaitingToStart').map(tp => tp.id);
-    if (!ids.length) { toast.error('Chọn đề tài đang "Chờ bắt đầu" để bắt đầu hàng loạt'); return; }
-    try { await topicService.proceedTopics(ids); await after(`Đã bắt đầu ${ids.length} đề tài`); setSelectedIds([]); }
-    catch (e) { toast.error(e.message || 'Thất bại'); }
+    if (!selectedIds.length) return;
+    try {
+      const res = await topicService.proceedTopics(selectedIds); // backend đẩy 1 bước theo trạng thái: Chờ bắt đầu→Đang thực hiện→Báo cáo
+      const n = res?.updated ?? 0;
+      setSelectedIds([]);
+      if (n > 0) await after(`Đã chuyển ${n} đề tài sang bước kế`);
+      else { toast.error('Đề tài đã chọn chưa thể chuyển bước (chỉ áp dụng: Chờ bắt đầu → Đang thực hiện → Báo cáo)'); await load(); }
+    } catch (e) { toast.error(e.message || 'Thất bại'); }
   };
   const bulkUndo = async () => {
     if (!selectedIds.length) return;
