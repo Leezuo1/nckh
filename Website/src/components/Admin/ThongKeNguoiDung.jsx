@@ -1,12 +1,13 @@
 import React from 'react';
 import './ThongKeNguoiDung.css';
 
-const ThongKeNguoiDung = ({ tong, sinhVien, giangVien, quanTri, isStudentView = false, isLecturerView = false }) => {
-  // Biến kiểm tra xem có đang ở trang xem chi tiết (SV hoặc GV) hay không
-  const isSpecificView = isStudentView || isLecturerView;
+const ThongKeNguoiDung = ({ tong, sinhVien, giangVien, quanTri, canBoKhoa = 0, canBoPhong = 0, truongKhoa = 0, isStudentView = false, isLecturerView = false, roleView = null }) => {
+  // Biến kiểm tra xem có đang ở trang xem chi tiết (SV / GV / role riêng) hay không
+  const isSpecificView = isStudentView || isLecturerView || !!roleView;
 
   // Xác định tiêu đề hiển thị
   const renderTitle = () => {
+    if (roleView) return roleView;
     if (isStudentView) return "Sinh Viên";
     if (isLecturerView) return "Giảng Viên";
     return "Quản Lý Người Dùng";
@@ -39,6 +40,24 @@ const ThongKeNguoiDung = ({ tong, sinhVien, giangVien, quanTri, isStudentView = 
             <span className="cham-tron xanh-la"></span>
             <span className="nhan-stats">Giảng Viên:</span>
             <span className="so-luong-stats">{giangVien}</span>
+          </div>
+
+          <div className="the-stats-don">
+            <span className="cham-tron" style={{ background: '#f59e0b' }}></span>
+            <span className="nhan-stats">Cán bộ Khoa:</span>
+            <span className="so-luong-stats">{canBoKhoa}</span>
+          </div>
+
+          <div className="the-stats-don">
+            <span className="cham-tron" style={{ background: '#0891b2' }}></span>
+            <span className="nhan-stats">Cán bộ Phòng:</span>
+            <span className="so-luong-stats">{canBoPhong}</span>
+          </div>
+
+          <div className="the-stats-don">
+            <span className="cham-tron" style={{ background: '#7c3aed' }}></span>
+            <span className="nhan-stats">Trưởng Khoa:</span>
+            <span className="so-luong-stats">{truongKhoa}</span>
           </div>
 
           <div className="the-stats-don">

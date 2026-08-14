@@ -14,7 +14,10 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  Building2,
+  Briefcase,
+  Award
 } from "lucide-react";
 
 const SidebarAdmin = ({ activeMenu, onMenuChange }) => {
@@ -30,6 +33,9 @@ const SidebarAdmin = ({ activeMenu, onMenuChange }) => {
     { id: "nguoi_dung", label: t('sidebarAdmin.users'), icon: UserCircle },
     { id: "sinh_vien", label: t('sidebarAdmin.students'), icon: Users },
     { id: "giang_vien", label: t('sidebarAdmin.lecturers'), icon: GraduationCap },
+    { id: "can_bo_khoa", label: "Cán bộ Khoa", icon: Building2 },
+    { id: "can_bo_phong", label: "Cán bộ Phòng", icon: Briefcase },
+    { id: "truong_khoa", label: "Trưởng Khoa", icon: Award },
   ];
 
   return (

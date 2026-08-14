@@ -6,81 +6,67 @@ import BangNguoiDung from "../../../components/Admin/BangNguoiDung";
 import ThanhPhanTrangAdmin from "../../../components/Admin/ThanhPhanTrangAdmin";
 import userService from "../../../services/userService";
 import { mapUserToTable } from "../../../utils/mappers";
-import './QuanLyNguoiDung.css';
+import '../QuanLyNguoiDung/QuanLyNguoiDung.css';
 
-const QuanLyNguoiDung = () => {
+const ROLE_LABEL = {
+  Student: 'Sinh Viên',
+  Lecturer: 'Giảng Viên',
+  FacultyOfficer: 'Cán bộ NCKH Khoa',
+  DepartmentOfficer: 'Cán bộ Phòng NCKH',
+  FacultyDean: 'Trưởng Khoa',
+  Admin: 'Admin',
+};
+
+// Trang quản lý người dùng lọc theo 1 vai trò cố định (Cán bộ Khoa / Phòng / Trưởng Khoa...)
+const QuanLyNguoiDungRole = ({ role, label, tenLoai = 'người dùng' }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tuKhoa, setTuKhoa] = useState("");
-  const [vaiTro, setVaiTro] = useState("all");
   const [trangThai, setTrangThai] = useState("all");
   const [trangHienTai, setTrangHienTai] = useState(1);
   const soMucMoiTrang = 5;
+  const roleLabel = label || ROLE_LABEL[role] || 'Người dùng';
 
   useEffect(() => {
+    setLoading(true);
     userService.getUsers()
-      .then(users => setData(users.map(mapUserToTable)))
+      .then(users => setData(users.map(mapUserToTable).filter(u => u.vaiTroRaw === role)))
       .catch(err => console.error('Loi tai nguoi dung:', err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [role]);
 
   const filteredData = data.filter(item => {
     const matchSearch = item.ten.toLowerCase().includes(tuKhoa.toLowerCase()) ||
-                        item.email.toLowerCase().includes(tuKhoa.toLowerCase());
-    const roleKeyMap = {
-      sinh_vien: 'Student',
-      giang_vien: 'Lecturer',
-      can_bo_khoa: 'FacultyOfficer',
-      can_bo_phong: 'DepartmentOfficer',
-      truong_khoa: 'FacultyDean',
-      admin: 'Admin',
-    };
-    const matchVaiTro = vaiTro === "all" || item.vaiTroRaw === roleKeyMap[vaiTro];
+                        (item.email || '').toLowerCase().includes(tuKhoa.toLowerCase());
     let matchTrangThai = true;
     if (trangThai === "hoat_dong") matchTrangThai = item.trangThai === true;
     if (trangThai === "vo_hieu") matchTrangThai = item.trangThai === false;
-    return matchSearch && matchVaiTro && matchTrangThai;
+    return matchSearch && matchTrangThai;
   });
 
-  useEffect(() => { setTrangHienTai(1); }, [tuKhoa, vaiTro, trangThai]);
+  useEffect(() => { setTrangHienTai(1); }, [tuKhoa, trangThai]);
 
   const indexOfLastItem = trangHienTai * soMucMoiTrang;
-  const indexOfFirstItem = indexOfLastItem - soMucMoiTrang;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredData.slice(indexOfLastItem - soMucMoiTrang, indexOfLastItem);
 
   const handleToggle = async (id) => {
     const user = data.find(item => item.id === id);
     try {
       await userService.updateUser(id, { status: user.trangThai ? 'Inactive' : 'Active' });
-      setData(prev => prev.map(item =>
-        item.id === id ? { ...item, trangThai: !item.trangThai } : item
-      ));
+      setData(prev => prev.map(item => item.id === id ? { ...item, trangThai: !item.trangThai } : item));
       toast.success(user.trangThai ? 'Đã vô hiệu hóa tài khoản' : 'Đã kích hoạt tài khoản');
-    } catch (err) {
-      console.error('Loi cap nhat trang thai:', err);
-      toast.error('Cập nhật trạng thái thất bại');
-    }
+    } catch (err) { console.error(err); toast.error('Cập nhật trạng thái thất bại'); }
   };
 
   const handleEditRole = async (id, newRole) => {
     try {
       await userService.updateUser(id, { role: newRole });
-      const roleMap = {
-        Student: 'Sinh Viên',
-        Lecturer: 'Giảng Viên',
-        FacultyOfficer: 'Cán bộ NCKH Khoa',
-        DepartmentOfficer: 'Cán bộ Phòng NCKH',
-        FacultyDean: 'Trưởng Khoa',
-        Admin: 'Admin',
-      };
-      setData(prev => prev.map(item =>
-        item.id === id ? { ...item, vaiTro: roleMap[newRole], vaiTroRaw: newRole } : item
-      ));
-      toast.success(`Đã cập nhật vai trò thành ${roleMap[newRole]}`);
-    } catch (err) {
-      console.error('Loi doi vai tro:', err);
-      toast.error('Cập nhật vai trò thất bại');
-    }
+      // Đổi role khác → bỏ khỏi danh sách trang này; giữ lại nếu vẫn cùng role
+      setData(prev => newRole === role
+        ? prev.map(item => item.id === id ? { ...item, vaiTro: ROLE_LABEL[newRole], vaiTroRaw: newRole } : item)
+        : prev.filter(item => item.id !== id));
+      toast.success(`Đã cập nhật vai trò thành ${ROLE_LABEL[newRole] || newRole}`);
+    } catch (err) { console.error(err); toast.error('Cập nhật vai trò thất bại'); }
   };
 
   const handleDelete = async (id) => {
@@ -88,30 +74,18 @@ const QuanLyNguoiDung = () => {
       await userService.deleteUser(id);
       setData(prev => prev.filter(item => item.id !== id));
       toast.success('Đã xóa người dùng');
-    } catch (err) {
-      console.error('Loi xoa nguoi dung:', err);
-      toast.error('Xóa người dùng thất bại');
-    }
+    } catch (err) { console.error(err); toast.error('Xóa người dùng thất bại'); }
   };
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center' }}>Đang tải...</div>;
 
   return (
     <div className="khung-quan-ly-nguoi-dung">
-      <ThongKeNguoiDung
-        tong={data.length}
-        sinhVien={data.filter(i => i.vaiTroRaw === "Student").length}
-        giangVien={data.filter(i => i.vaiTroRaw === "Lecturer").length}
-        canBoKhoa={data.filter(i => i.vaiTroRaw === "FacultyOfficer").length}
-        canBoPhong={data.filter(i => i.vaiTroRaw === "DepartmentOfficer").length}
-        truongKhoa={data.filter(i => i.vaiTroRaw === "FacultyDean").length}
-        quanTri={data.filter(i => i.vaiTroRaw === "Admin").length}
-      />
+      <ThongKeNguoiDung tong={data.length} roleView={roleLabel} />
       <SearchBarGroupAdmin
         tuKhoa={tuKhoa} setTuKhoa={setTuKhoa}
-        vaiTro={vaiTro} setVaiTro={setVaiTro}
         trangThai={trangThai} setTrangThai={setTrangThai}
-        isStudentView={false}
+        hideRole={true}
       />
       <div className="vung-chua-bang-chinh">
         <BangNguoiDung
@@ -119,18 +93,17 @@ const QuanLyNguoiDung = () => {
           handleToggle={handleToggle}
           handleEditRole={handleEditRole}
           handleDelete={handleDelete}
-          isStudentView={false}
         />
         <ThanhPhanTrangAdmin
           tongSoMuc={filteredData.length}
           soMucMoiTrang={soMucMoiTrang}
           trangHienTai={trangHienTai}
           datTrangHienTai={setTrangHienTai}
-          tenLoaiMuc="người dùng"
+          tenLoaiMuc={tenLoai}
         />
       </div>
     </div>
   );
 };
 
-export default QuanLyNguoiDung;
+export default QuanLyNguoiDungRole;

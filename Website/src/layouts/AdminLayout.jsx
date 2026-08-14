@@ -15,6 +15,9 @@ const AdminLayout = ({ children }) => {
       case 'nguoi_dung': navigate('/admin/nguoi-dung'); break
       case 'sinh_vien': navigate('/admin/sinh-vien'); break
       case 'giang_vien': navigate('/admin/giang-vien'); break
+      case 'can_bo_khoa': navigate('/admin/can-bo-khoa'); break
+      case 'can_bo_phong': navigate('/admin/can-bo-phong'); break
+      case 'truong_khoa': navigate('/admin/truong-khoa'); break
       case 'setting': navigate('/admin/setting'); break
       default: break
     }
@@ -28,6 +31,9 @@ const AdminLayout = ({ children }) => {
     if (path === '/admin/nguoi-dung') return 'nguoi_dung'
     if (path === '/admin/sinh-vien') return 'sinh_vien'
     if (path === '/admin/giang-vien') return 'giang_vien'
+    if (path === '/admin/can-bo-khoa') return 'can_bo_khoa'
+    if (path === '/admin/can-bo-phong') return 'can_bo_phong'
+    if (path === '/admin/truong-khoa') return 'truong_khoa'
     if (path === '/admin/setting') return 'setting'
     return ''
   }

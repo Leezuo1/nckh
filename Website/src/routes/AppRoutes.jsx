@@ -19,6 +19,7 @@ import NotFound from '../pages/NotFound/NotFound'
 import QuanLyNguoiDung from '../pages/Admin/QuanLyNguoiDung/QuanLyNguoiDung'
 import QuanLyNguoiDungSV from '../pages/Admin/QuanLyNguoiDungSV/QuanLyNguoiDungSV'
 import QuanLyNguoiDungGV from '../pages/Admin/QuanLyNguoiDungGV/QuanLyNguoiDungGV'
+import QuanLyNguoiDungRole from '../pages/Admin/QuanLyNguoiDungRole/QuanLyNguoiDungRole'
 import Setting from '../pages/Admin/Setting/Setting'
 
 const AppRoutes = () => {
@@ -77,6 +78,18 @@ const AppRoutes = () => {
 
         <Route path="/admin/giang-vien" element={
           <ProtectedRoute requiredRole="Admin"><AdminLayout><QuanLyNguoiDungGV /></AdminLayout></ProtectedRoute>
+        } />
+
+        <Route path="/admin/can-bo-khoa" element={
+          <ProtectedRoute requiredRole="Admin"><AdminLayout><QuanLyNguoiDungRole role="FacultyOfficer" label="Cán bộ NCKH Khoa" tenLoai="cán bộ khoa" /></AdminLayout></ProtectedRoute>
+        } />
+
+        <Route path="/admin/can-bo-phong" element={
+          <ProtectedRoute requiredRole="Admin"><AdminLayout><QuanLyNguoiDungRole role="DepartmentOfficer" label="Cán bộ Phòng NCKH" tenLoai="cán bộ phòng" /></AdminLayout></ProtectedRoute>
+        } />
+
+        <Route path="/admin/truong-khoa" element={
+          <ProtectedRoute requiredRole="Admin"><AdminLayout><QuanLyNguoiDungRole role="FacultyDean" label="Trưởng Khoa" tenLoai="trưởng khoa" /></AdminLayout></ProtectedRoute>
         } />
 
         <Route path="/admin/setting" element={

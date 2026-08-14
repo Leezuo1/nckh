@@ -9,7 +9,8 @@ const SearchBarGroupAdmin = ({
   setVaiTro, 
   trangThai, 
   setTrangThai,
-  isStudentView = false // THÊM DÒNG NÀY: Mặc định là false
+  isStudentView = false, // Mặc định là false
+  hideRole = false // ẩn dropdown lọc vai trò (dùng cho trang 1 role cố định)
 }) => {
   const [moVaiTro, setMoVaiTro] = useState(false);
   const [moTrangThai, setMoTrangThai] = useState(false);
@@ -59,7 +60,7 @@ const SearchBarGroupAdmin = ({
       <div className="nhom-bo-loc-phai">
         
         {/* CHỈ HIỆN VAI TRÒ NẾU KHÔNG PHẢI LÀ TRANG SINH VIÊN */}
-        {!isStudentView && (
+        {!isStudentView && !hideRole && (
           <div className="o-chon-tuy-chinh" ref={refVaiTro}>
             <div className={`nut-chon-gia-select ${moVaiTro ? 'active' : ''}`} onClick={() => setMoVaiTro(!moVaiTro)}>
               <span>{getLabelVaiTro(vaiTro)}</span>
