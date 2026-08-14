@@ -346,6 +346,12 @@ export class TopicsController {
   }
 
   // ===== PHA 2: cấp GVHD =====
+  // GET /api/lookup-student/:mssv — tra nhanh tên SV theo MSSV (cho form thêm thành viên)
+  @Get('lookup-student/:mssv')
+  lookupStudent(@Param('mssv') mssv: string) {
+    return this.topicsService.lookupStudent(mssv);
+  }
+
   // GET /api/lecturers-list — danh sách GVHD để cán bộ chọn
   @Get('lecturers-list')
   listLecturers() {

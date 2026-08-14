@@ -1602,6 +1602,14 @@ export class TopicsService {
     };
   }
 
+  // Tra cứu nhanh SV theo MSSV (cho form thêm thành viên) — chỉ trả tên + vai trò, không lộ dữ liệu nhạy cảm.
+  async lookupStudent(mssv: string) {
+    const id = (mssv || '').trim();
+    if (!id) return { found: false, fullName: null, role: null };
+    const u = await this.prisma.user.findUnique({ where: { userId: id }, select: { fullName: true, role: true } });
+    return { found: !!u, fullName: u?.fullName || null, role: u?.role || null };
+  }
+
   // ===== PHA 2: Cán bộ Khoa cấp GVHD cho ý tưởng SV thiếu người =====
   async listLecturers() {
     return this.prisma.user.findMany({

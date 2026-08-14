@@ -223,6 +223,10 @@ const topicService = {
   cancelTopic(topicId, reason) {
     return api.patch(`/topics/${topicId}/cancel`, { reason });
   },
+  // Tra nhanh tên SV theo MSSV (cho form thêm thành viên)
+  lookupStudent(mssv) {
+    return api.get(`/lookup-student/${encodeURIComponent(mssv)}`);
+  },
 };
 
 export default topicService;

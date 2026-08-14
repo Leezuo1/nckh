@@ -106,12 +106,6 @@ const CanBoDashboard = () => {
     try { await topicService.enterScore(id, Number(score), new Date(dateTime).toISOString()); await after('Đã nhập điểm + mở chỉnh sửa'); setScore(''); setDateTime(''); }
     catch (e) { toast.error(e.message || 'Thất bại'); }
   };
-  // Lùi trạng thái 1 bước (sửa sai) — dùng lại state machine vòng đời
-  const doUndo = async (id) => {
-    if (!window.confirm('Lùi đề tài về trạng thái liền trước?')) return;
-    try { await topicService.undoTopics([id]); await after('Đã lùi 1 bước'); }
-    catch (e) { toast.error(e.message || 'Không lùi được ở trạng thái này'); }
-  };
 
   // Huỷ đề tài (Cán bộ Khoa) — dừng hẳn ở bất kỳ giai đoạn nào
   const doCancel = async (id) => {
@@ -275,11 +269,11 @@ const CanBoDashboard = () => {
             <div style={{ flex: 1 }} />
             <button disabled={!selectedIds.length} onClick={bulkStart}
               style={{ ...btn, fontSize: 13, background: selectedIds.length ? '#16a34a' : '#e2e8f0', color: selectedIds.length ? '#fff' : '#94a3b8', cursor: selectedIds.length ? 'pointer' : 'not-allowed' }}>
-              ▶ Bắt đầu đã chọn
+              ▶ Chuyển Bước
             </button>
             <button disabled={!selectedIds.length} onClick={bulkUndo}
               style={{ ...btn, fontSize: 13, background: selectedIds.length ? '#f1f5f9' : '#f8fafc', color: selectedIds.length ? '#475569' : '#cbd5e1', border: '1px solid #e2e8f0', cursor: selectedIds.length ? 'pointer' : 'not-allowed' }}>
-              ↩ Lùi bước đã chọn
+              ↩ Lùi Bước
             </button>
           </div>
         )}
@@ -311,10 +305,6 @@ const CanBoDashboard = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} onClick={(e) => e.stopPropagation()}>
-                  {['InProgress', 'Reporting', 'Editing', 'Done'].includes(tp.status) && (
-                    <button onClick={() => doUndo(tp.id)} title="Lùi trạng thái 1 bước"
-                      style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#f1f5f9', color: '#475569' }}>↩ Lùi bước</button>
-                  )}
                   {view === 'dieuhanh' && !['Done', 'Cancelled'].includes(tp.status) && (
                     <button onClick={() => doCancel(tp.id)} title="Huỷ đề tài (vẫn giữ hồ sơ)"
                       style={{ ...btn, fontSize: 12, padding: '4px 10px', background: '#fee2e2', color: '#b91c1c' }}>✕ Huỷ đề tài</button>

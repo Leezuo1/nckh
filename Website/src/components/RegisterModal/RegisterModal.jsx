@@ -49,6 +49,8 @@ const RegisterModal = ({ onClose, onSuccess }) => {
   const [selectedBatch, setSelectedBatch] = useState('')
   const [proposalFile, setProposalFile] = useState(null) // file thuyết minh (bắt buộc)
   const [formError, setFormError] = useState('') // thông báo lỗi chung khi bấm Xác nhận
+  const [lookups, setLookups] = useState({}) // kết quả tra MSSV theo index: { loading, found, fullName }
+  const lookupTimers = useRef({}) // debounce timer theo index
 
   // GVHD (không phải SV) chọn đợt đề tài để lập nhóm
   useEffect(() => {
@@ -82,6 +84,30 @@ const RegisterModal = ({ onClose, onSuccess }) => {
     updated[index][field] = value
     setStudents(updated)
     setErrors(prev => ({ ...prev, [`${field}_${index}`]: false }))
+
+    // Gõ MSSV → tự tra tên SV (debounce)
+    if (field === 'studentId') {
+      const mssv = value.trim()
+      clearTimeout(lookupTimers.current[index])
+      if (mssv.length < 6) { setLookups(prev => ({ ...prev, [index]: null })); return }
+      setLookups(prev => ({ ...prev, [index]: { loading: true } }))
+      lookupTimers.current[index] = setTimeout(async () => {
+        try {
+          const res = await topicService.lookupStudent(mssv)
+          setLookups(prev => ({ ...prev, [index]: { loading: false, found: res.found, fullName: res.fullName } }))
+          // tự điền tên nếu tìm thấy và ô tên đang trống
+          if (res.found && res.fullName) {
+            setStudents(cur => {
+              const arr = [...cur]
+              if (arr[index] && !arr[index].fullName.trim()) arr[index].fullName = res.fullName
+              return arr
+            })
+          }
+        } catch {
+          setLookups(prev => ({ ...prev, [index]: { loading: false, found: false } }))
+        }
+      }, 500)
+    }
   }
 
   const handleSubmit = () => {
@@ -339,6 +365,15 @@ const RegisterModal = ({ onClose, onSuccess }) => {
                       ))}
                     </select>
                   </div>
+                  {lookups[index] && (
+                    <div style={{ fontSize: 12, marginTop: 4 }}>
+                      {lookups[index].loading
+                        ? <span style={{ color: '#888' }}>Đang kiểm tra MSSV…</span>
+                        : lookups[index].found
+                          ? <span style={{ color: '#16a34a' }}>✓ {lookups[index].fullName} — đã có tài khoản</span>
+                          : <span style={{ color: '#d97706' }}>⚠ MSSV chưa có tài khoản (vẫn lưu; sẽ tự thêm vào nhóm khi bạn ấy có tài khoản)</span>}
+                    </div>
+                  )}
                 </div>
               ))}
               {students.length < 4 && (
