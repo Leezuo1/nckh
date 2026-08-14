@@ -95,6 +95,21 @@ export class AuthService {
         ? 'Student'
         : 'Lecturer';
 
+    // Tách hồ sơ từ displayName VLU dạng "MSSV - Họ Tên - Lớp" (vd "2474802010510 - Nguyễn Việt Hài - 71K30CNTT11")
+    const dnParts = String(msUser.displayName || '').split(' - ').map((s: string) => s.trim()).filter(Boolean);
+    const classCode = dnParts.length >= 3 ? dnParts[dnParts.length - 1] : '';
+    const fullName = dnParts.length >= 3 ? dnParts.slice(1, -1).join(' - ') : (msUser.displayName || localPart);
+    const batch = ((classCode.match(/K\s?\d+/i) || [])[0] || '').toUpperCase().replace(/\s+/g, '') || null; // "K30"
+    const majorCode = ((classCode.match(/[A-Za-z]{2,}/) || [])[0] || '').toUpperCase(); // "CNTT"
+    const FACULTY_MAP: Record<string, string> = {
+      CNTT: 'Công Nghệ Thông Tin',
+      IOT: 'IoT và Hệ Thống Nhúng',
+      TKVM: 'Thiết Kế Vi Mạch',
+      KTD: 'Kỹ Thuật Điện',
+      CK: 'Cơ Khí',
+    };
+    const faculty = FACULTY_MAP[majorCode] || (msUser.department && String(msUser.department).trim()) || 'Chưa cập nhật';
+
     let user = await this.prisma.user.findUnique({ where: { outlook } });
     let isNewUser = false;
 
@@ -113,20 +128,25 @@ export class AuthService {
       user = await this.prisma.user.create({
         data: {
           userId: localPart,
-          fullName: msUser.displayName || localPart, // tên thật từ Microsoft Graph
-          faculty: msUser.department || 'Chưa cập nhật',
+          fullName, // họ tên tách từ displayName
+          faculty,  // khoa/ngành tách từ mã lớp (vd CNTT → Công Nghệ Thông Tin)
+          batch,    // khóa tách từ mã lớp (vd K30)
           gender: 'Male', // placeholder — user cập nhật sau
-          phone: `ms_${localPart}`, // placeholder tránh trùng unique
+          phone: `ms_${localPart}`, // Microsoft không cấp SĐT; placeholder unique, user tự sửa
           outlook,
           role: derivedRole,
           status: 'Active',
         },
       });
       isNewUser = true;
-    } else if (['Student', 'Lecturer'].includes(user.role) && user.role !== derivedRole) {
-      // Tài khoản đã có: tự sửa nhầm lẫn Sinh viên↔Giảng viên theo email
-      // (KHÔNG đụng các role cán bộ/khoa/phòng/admin do người khác gán tay).
-      user = await this.prisma.user.update({ where: { id: user.id }, data: { role: derivedRole } });
+    } else {
+      // Tài khoản đã có: tự điền/ sửa các trường còn ở giá trị mặc định (KHÔNG đè dữ liệu user đã tự sửa).
+      const patch: Record<string, any> = {};
+      if (['Student', 'Lecturer'].includes(user.role) && user.role !== derivedRole) patch.role = derivedRole;
+      if ((!user.faculty || user.faculty === 'Chưa cập nhật') && faculty !== 'Chưa cập nhật') patch.faculty = faculty;
+      if (!user.batch && batch) patch.batch = batch;
+      if (fullName && user.fullName === String(msUser.displayName || '') && fullName !== user.fullName) patch.fullName = fullName;
+      if (Object.keys(patch).length) user = await this.prisma.user.update({ where: { id: user.id }, data: patch });
     }
 
     if (user.status === 'Inactive') {
