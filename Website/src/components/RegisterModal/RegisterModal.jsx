@@ -334,10 +334,9 @@ const RegisterModal = ({ onClose, onSuccess }) => {
                       onChange={(e) => handleStudentChange(index, 'batch', e.target.value)}
                     >
                       <option value="">{t('register.batch')}</option>
-                      <option value="Khóa 25">K25</option>
-                      <option value="Khóa 26">K26</option>
-                      <option value="Khóa 27">K27</option>
-                      <option value="Khóa 28">K28</option>
+                      {Array.from({ length: 11 }, (_, i) => 32 - i).map(k => (
+                        <option key={k} value={`Khóa ${k}`}>K{k}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
