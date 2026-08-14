@@ -248,7 +248,8 @@ export class TopicsService {
     const { durationMonths, members, ...rest } = dto;
 
     // Lưu nguyên roster đã nhập (kể cả MSSV chưa có tài khoản) để luôn hiển thị được thành viên.
-    const roster = (members || []).filter(m => (m?.fullName || '').trim() || (m?.studentId || '').trim());
+    // Chủ nhiệm (người tạo) + tối đa 4 thành viên = 1 đề tài tối đa 5 người.
+    const roster = (members || []).filter(m => (m?.fullName || '').trim() || (m?.studentId || '').trim()).slice(0, 4);
 
     const created = await this.prisma.topic.create({
       data: {
@@ -275,7 +276,7 @@ export class TopicsService {
     // Thêm các thành viên nhóm theo MSSV (best-effort — bỏ qua & cảnh báo nếu không hợp lệ)
     const memberWarnings: string[] = [];
     const submitterUser = await this.prisma.user.findUnique({ where: { id: submitterId }, select: { userId: true } });
-    for (const m of members || []) {
+    for (const m of roster) {
       const mssv = (m?.studentId || '').trim();
       if (!mssv) continue;
       if (submitterUser?.userId === mssv) continue; // chính chủ, đã là Leader

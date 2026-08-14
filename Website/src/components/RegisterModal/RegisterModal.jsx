@@ -67,7 +67,7 @@ const RegisterModal = ({ onClose, onSuccess }) => {
   }
 
   const handleAddStudent = () => {
-    if (students.length >= 5) return
+    if (students.length >= 4) return // chủ nhiệm (người tạo) + tối đa 4 thành viên = 5 người
     setStudents([...students, { ...emptyStudent }])
   }
 
@@ -341,7 +341,7 @@ const RegisterModal = ({ onClose, onSuccess }) => {
                   </div>
                 </div>
               ))}
-              {students.length < 5 && (
+              {students.length < 4 && (
                 <button className="btn-add-student" onClick={handleAddStudent}>
                   ⊕ {t('register.addStudent')}
                 </button>
