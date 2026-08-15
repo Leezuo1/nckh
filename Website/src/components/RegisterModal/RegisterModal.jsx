@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import './RegisterModal.css'
 import ConfirmDialog from '../Common/ConfirmDialog'
@@ -51,6 +51,12 @@ const RegisterModal = ({ onClose, onSuccess }) => {
   const [formError, setFormError] = useState('') // thông báo lỗi chung khi bấm Xác nhận
   const [lookups, setLookups] = useState({}) // kết quả tra MSSV theo index: { loading, found, fullName }
   const lookupTimers = useRef({}) // debounce timer theo index
+
+  // Dọn timer debounce khi đóng modal
+  useEffect(() => {
+    const timers = lookupTimers.current
+    return () => Object.values(timers).forEach(clearTimeout)
+  }, [])
 
   // GVHD (không phải SV) chọn đợt đề tài để lập nhóm
   useEffect(() => {
