@@ -1,6 +1,2 @@
-
 # Ban zip dong goi du an - khong commit
 *.zip
-
-# Config cong cu cuc bo (khong day len repo)
-.claude/
